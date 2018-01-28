@@ -4,6 +4,7 @@
 #include "utils.hpp"
 
 #ifndef _PBBS_SPTL_HULL
+#define _PBBS_SPTL_HULL
 
 namespace sptl {
 
@@ -125,11 +126,11 @@ parray<intT> hull(parray<point2d>& p) {
   intT l = min_max.first;
   intT r = min_max.second;
   parray<bool> is_top_hull;
-  is_top_hull.reset(n, (bool*)malloc(n * sizeof(bool)));
+  is_top_hull.reset(n);
   parray<bool> is_bottom_hull;
-  is_bottom_hull.reset(n, (bool*)malloc(n * sizeof(bool)));
+  is_bottom_hull.reset(n);
   parray<intT> indices;
-  indices.reset(n, (intT*)malloc(n * sizeof(intT)));
+  indices.reset(n);
   parray<intT> tmp(n, [&] (int i) {
     return i;
   });

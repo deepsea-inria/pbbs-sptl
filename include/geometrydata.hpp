@@ -3,25 +3,26 @@
 #include "sprandgen.hpp"
 
 #ifndef _PBBS_SPTL_GEOMETRYDATA
+#define _PBBS_SPTL_GEOMETRYDATA
 
 namespace sptl {
 
 template <class uintT>
 point2d rand2d(uintT i) {
   uintT s1 = i;
-  uintT s2 = i + prandgen::hash<uintT>(s1);
-  return point2d(2*prandgen::hash<double>(s1)-1,
-                 2*prandgen::hash<double>(s2)-1);
+  uintT s2 = i + hash<uintT>(s1);
+  return point2d(2*hash<double>(s1)-1,
+                 2*hash<double>(s2)-1);
 }
 
 template <class intT, class uintT>
 point3d rand3d(intT i) {
   uintT s1 = i;
-  uintT s2 = i + prandgen::hash<uintT>(s1);
-  uintT s3 = 2*i + prandgen::hash<uintT>(s2);
-  return point3d(2*prandgen::hash<double>(s1)-1,
-                 2*prandgen::hash<double>(s2)-1,
-                 2*prandgen::hash<double>(s3)-1);
+  uintT s2 = i + hash<uintT>(s1);
+  uintT s3 = 2*i + hash<uintT>(s2);
+  return point3d(2*hash<double>(s1)-1,
+                 2*hash<double>(s2)-1,
+                 2*hash<double>(s3)-1);
 }
 
 template <class intT>
@@ -29,7 +30,7 @@ point2d randInUnitSphere2d(intT i) {
   intT j = 0;
   vect2d v;
   do {
-    intT o = prandgen::hash<intT>(j++);
+    intT o = hash<intT>(j++);
     v = vect2d(rand2d(o + i));
   } while (v.length() > 1.0);
   return point2d(v);
@@ -40,7 +41,7 @@ point3d randInUnitSphere3d(intT i) {
   intT j = 0;
   vect3d v;
   do {
-    intT o = prandgen::hash<intT>(j++);
+    intT o = hash<intT>(j++);
     v = vect3d(rand3d<intT, uintT>(o+i));
   } while (v.length() > 1.0);
   return point3d(v);
@@ -61,8 +62,8 @@ point3d randOnUnitSphere3d(intT i) {
 template <class intT>
 point2d randKuzmin(intT i) {
   vect2d v = vect2d(randOnUnitSphere2d(i));
-  intT j = prandgen::hash<intT>(i);
-  double s = prandgen::hash<double>(j);
+  intT j = hash<intT>(i);
+  double s = hash<double>(j);
   double r = sqrt(1.0/((1.0-s)*(1.0-s))-1.0);
   return point2d(v*r);
 }
@@ -70,8 +71,8 @@ point2d randKuzmin(intT i) {
 template <class intT,class uintT>
 point3d randPlummer(intT i) {
   vect3d v = vect3d(randOnUnitSphere3d<intT,uintT>(i));
-  intT j = prandgen::hash<intT>(i);
-  double s = pow(prandgen::hash<double>(j),2.0/3.0);
+  intT j = hash<intT>(i);
+  double s = pow(hash<double>(j),2.0/3.0);
   double r = sqrt(s/(1-s));
   return point3d(v*r);
 }

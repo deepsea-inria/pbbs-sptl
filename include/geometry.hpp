@@ -5,6 +5,7 @@
 #include <iomanip>
 
 #ifndef _PBBS_SPTL_GEOMETRY_
+#define _PBBS_SPTL_GEOMETRY_
 
 namespace sptl {
 
@@ -63,7 +64,7 @@ public:
   }
 
   void print() {
-    cout << std::setprecision(10) << ":(" << x << "," << y << "," << z << "):";
+    std::cout << std::setprecision(10) << ":(" << x << "," << y << "," << z << "):";
   }
 
   floatT length(void) {
@@ -84,7 +85,7 @@ public:
   _point3d() {x=0;y=0;z=0;}
   _point3d(vectT v) : x(v.x),y(v.y),z(v.z) {};
   _point3d(floatT* p) : x(p[0]), y(p[1]), z(p[2]) {};
-  void print() {cout << ":(" << x << "," << y << "," << z << "):";}
+  void print() {std::cout << ":(" << x << "," << y << "," << z << "):";}
   vectT operator-(pointT op2) {
     return vectT(x - op2.x, y - op2.y, z - op2.z);}
   pointT operator+(vectT op2) {
@@ -188,7 +189,7 @@ public:
   }
 
   void print() {
-    cout << ":(" << x << "," << y << "):";
+    std::cout << ":(" << x << "," << y << "):";
   }
 
   floatT length(void) {
@@ -218,7 +219,7 @@ public:
   _point2d() {x=0;y=0;}
   _point2d(vectT v) : x(v.x),y(v.y) {};
   _point2d(floatT* p) : x(p[0]), y(p[1]) {};
-  void print() {cout << ":(" << x << "," << y << "):";}
+  void print() {std::cout << ":(" << x << "," << y << "):";}
 
   vectT operator-(pointT op2) {
     return vectT(x - op2.x, y - op2.y);

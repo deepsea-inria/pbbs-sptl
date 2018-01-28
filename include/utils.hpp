@@ -2,6 +2,7 @@
 #include <atomic>
 
 #ifndef _PBBS_SPTL_UTILS
+#define _PBBS_SPTL_UTILS
 
 namespace sptl {
 

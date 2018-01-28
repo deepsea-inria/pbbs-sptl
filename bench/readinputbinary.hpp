@@ -7,6 +7,7 @@
 #include "graph.hpp"
 
 #ifndef _PBBS_SPTL_READINPUTBINARY
+#define _PBBS_SPTL_READINPUTBINARY
 
 namespace sptl {
 
@@ -101,19 +102,6 @@ struct read_from_file_struct<triangles<Point>> {
     t.p = read_from_file_struct<Point*>()(in, t.num_points);
     in.read(reinterpret_cast<char*>(&t.num_triangles), sizeof(long));
     t.t = read_from_file_struct<triangle*>()(in, t.num_triangles); return t;
-  }
-};
-
-template <>
-struct read_from_file_struct<ray_cast_test> {
-  ray_cast_test operator()(std::ifstream& in) {
-    ray_cast_test test;
-  
-    test.points = read_from_file<parray<point3d>>(in);
-    test.triangles = read_from_file<parray<triangle>>(in);
-    test.rays = read_from_file<parray<ray<point3d>>>(in);
-  
-    return test;
   }
 };
 
