@@ -11,19 +11,13 @@
 template <class Item>
 using parray = sptl::parray<Item>;
 
-parray<pbbs::_point2d<double>> to_pbbs(parray<sptl::_point2d<double>>& points) {
-  parray<pbbs::_point2d<double>> result(points.size());
-  for (int i = 0; i < points.size(); i++) {
-    result[i] = pbbs::_point2d<double>(points[i].x, points[i].y);
-  }
-  return result;
-}
-
 void pbbs_sptl_call(sptl::bench::measured_type measured, parray<sptl::_point2d<double>>& x) {
   deepsea::cmdline::dispatcher d;
   pbbs::_seq<intT> pbbs_result;
   auto do_pbbs = [&] {
-    parray<pbbs::_point2d<double>> y = to_pbbs(x);
+    parray<pbbs::_point2d<double>> y(x.size(), [&] (size_t i) {
+      return pbbs::_point2d<double>(x[i].x, x[i].y);
+    });
     measured([&] {
       pbbs_result = pbbs::hull(&y[0], (int)y.size());
     });
