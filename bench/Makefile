@@ -12,7 +12,7 @@ INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_HOME) -I $(CMDLINE_HOME) -I $(SPTL_HOME) -I $
 
 COMMON_PREFIX=-std=c++11 -DTARGET_LINUX -Wno-subobject-linkage -Wno-overflow
 DEBUG_PREFIX=$(COMMON_PREFIX) -g -O0
-OPT_PREFIX=$(COMMON_PREFIX) -O2 -march=native
+OPT_PREFIX=$(COMMON_PREFIX) -O2 -march=native -DNDEBUG -m64 -lm
 
 %.dbg: %.cpp $(INCLUDE_FILES)
 	g++ $(DEBUG_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
@@ -21,4 +21,4 @@ OPT_PREFIX=$(COMMON_PREFIX) -O2 -march=native
 	g++ $(OPT_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
 
 clean:
-	rm -f *.dbg
+	rm -f *.dbg *.opt
