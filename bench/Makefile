@@ -27,4 +27,4 @@ LOG_PREFIX=$(OPT_PREFIX) -DSPTL_ENABLE_LOGGING
 	g++ $(LOG_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
 
 clean:
-	rm -f *.dbg *.opt
+	rm -f *.dbg *.opt *.log
