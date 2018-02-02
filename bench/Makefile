@@ -1,4 +1,7 @@
 
+PBENCH_PATH=../../pbench
+
+include $(PBENCH_PATH)/Makefile_common
 
 PACKAGE_PATH=../../
 CMDLINE_HOME=$(PACKAGE_PATH)/cmdline/include
@@ -28,21 +31,31 @@ ifeq ($(strip $(USE_HWLOC)),1)
    HWLOC_PREFIX=$(HWLOC_PREFIX_ALL)
 endif
 
-CILK_PREFIX=-fcilkplus -lcilkrts -DSPTL_USE_CILK_PLUS_RUNTIME -DUSE_CILK_PLUS_RUNTIME
+CILK_PREFIX=
+ifeq ($(strip $(USE_CILK)),1)
+	CILK_PREFIX=-fcilkplus -lcilkrts -DSPTL_USE_CILK_PLUS_RUNTIME -DUSE_CILK_PLUS_RUNTIME
+endif
+
 WARNINGS_PREFIX=-Wno-subobject-linkage -Wno-overflow
-COMMON_PREFIX=-std=c++1y -DTARGET_LINUX $(WARNINGS_PREFIX) $(CILK_PREFIX) $(HWLOC_PREFIX)
-DEBUG_PREFIX=$(COMMON_PREFIX) -g -O0
-OPT_PREFIX=$(COMMON_PREFIX) -O2 -march=native -DNDEBUG -m64 -lm
-LOG_PREFIX=$(OPT_PREFIX) -DSPTL_ENABLE_LOGGING
+COMMON_PREFIX=-std=c++1y -DTARGET_LINUX $(WARNINGS_PREFIX) $(HWLOC_PREFIX)
+RUNTIME_PREFIX=$(CILK_PREFIX)
+DEBUG_PREFIX=$(COMMON_PREFIX) $(RUNTIME_PREFIX) -g -O0
+O2_PREFIX=-O2 -march=native -DNDEBUG -m64 -lm
+SPTL_PREFIX=$(COMMON_PREFIX) $(RUNTIME_PREFIX) $(O2_PREFIX)
+SPTL_ELISION_PREFIX=$(COMMON_PREFIX) $(O2_PREFIX)
+LOG_PREFIX=$(SPTL_PREFIX) $(RUNTIME_PREFIX) -DSPTL_ENABLE_LOGGING
 
 %.dbg: %.cpp $(INCLUDE_FILES)
 	g++ $(DEBUG_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
 
-%.opt: %.cpp $(INCLUDE_FILES)
-	g++ $(OPT_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
+%.sptl: %.cpp $(INCLUDE_FILES)
+	g++ $(SPTL_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
+
+%.sptl_elision: %.cpp $(INCLUDE_FILES)
+	g++ $(SPTL_ELISION_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
 
 %.log: %.cpp $(INCLUDE_FILES)
 	g++ $(LOG_PREFIX) $(INCLUDE_DIRECTIVES) -o $@ $<
 
-clean:
-	rm -f *.dbg *.opt *.log
+clean: pbench_clean
+	rm -f *.dbg *.sptl *.sptl_elision *.log

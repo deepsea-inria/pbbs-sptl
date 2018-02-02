@@ -23,7 +23,7 @@ void pbbs_sptl_call(sptl::bench::measured_type measured, parray<sptl::_point2d<d
     });
   };
   d.add("pbbs", do_pbbs);
-  d.add("pctl", [&] {
+  d.add("sptl", [&] {
     parray<intT> sptl_result;
     measured([&] {
       sptl_result = sptl::hull(x);
