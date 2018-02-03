@@ -15,7 +15,7 @@ void pbbs_sptl_call(sptl::bench::measured_type measured, parray<sptl::_point2d<d
   deepsea::cmdline::dispatcher d;
   pbbs::_seq<intT> pbbs_result;
   auto do_pbbs = [&] {
-    parray<pbbs::_point2d<double>> y(x.size(), [&] (size_t i) {
+    parray<pbbs::_point2d<double>> y(x.size(), [&] (sptl::size_type i) {
       return pbbs::_point2d<double>(x[i].x, x[i].y);
     });
     measured([&] {
@@ -33,7 +33,7 @@ void pbbs_sptl_call(sptl::bench::measured_type measured, parray<sptl::_point2d<d
       if (pbbs_result.n != sptl_result.size()) {
         sptl::die("bogus size");
       }
-      for (size_t i = 0; i < sptl_result.size(); i++) {
+      for (sptl::size_type i = 0; i < sptl_result.size(); i++) {
         if (sptl_result[i] != pbbs_result.A[i]) {
           sptl::die("bogus item at position %d", i);
         }
