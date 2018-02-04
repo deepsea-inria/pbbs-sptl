@@ -126,6 +126,48 @@ struct read_from_file_struct<graph::graph<intT>> {
   }
 };
 
+class ray_cast_test {
+public:
+  static
+  ray_cast_test foo;
+  sptl::parray<point3d> points;
+  sptl::parray<triangle> triangles;
+  sptl::parray<ray<point3d>> rays;
+
+  ray_cast_test(): points(0), triangles(0), rays(0) { }
+
+  ray_cast_test(const ray_cast_test& other) {
+    points = other.points;
+    triangles = other.triangles;
+    rays = other.rays;
+  }
+
+  ray_cast_test& operator=(const ray_cast_test& other) {
+    if (&other == this) {
+      return *this;
+    }
+    this->points = other.points;
+    this->triangles = other.triangles;
+    this->rays = other.rays;
+    return foo;
+  }
+};
+
+ray_cast_test ray_cast_test::foo;
+
+template <>
+struct read_from_file_struct<ray_cast_test> {
+  ray_cast_test operator()(std::ifstream& in) {
+    ray_cast_test test;
+  
+    test.points = read_from_file<parray<point3d>>(in);
+    test.triangles = read_from_file<parray<triangle>>(in);
+    test.rays = read_from_file<parray<ray<point3d>>>(in);
+  
+    return test;
+  }
+};
+  
 template <class Item>
 Item read_from_file(std::ifstream& in) {
   return read_from_file_struct<Item>()(in);
