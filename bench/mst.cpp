@@ -49,7 +49,7 @@ void benchmark(sptl::bench::measured_type measured) {
   pbbs_results.first = nullptr;
   auto do_pbbs = [&] {
     parray<pbbs::graph::wghEdge<intT>> edges2(edges.m, [&] (intT i) {
-      return pbbs::graph::wghEdge<int>(edges.E[i].u, edges.E[i].v, edges.E[i].weight);
+      return pbbs::graph::wghEdge<intT>(edges.E[i].u, edges.E[i].v, edges.E[i].weight);
     });
     pbbs::graph::wghEdgeArray<intT> y(edges2.begin(), edges.n, edges.m);
     measured([&] {
@@ -60,7 +60,7 @@ void benchmark(sptl::bench::measured_type measured) {
   d.add("pbbs", do_pbbs);
   d.add("sptl", [&] {
     measured([&] {
-      sptl::mst(edges);
+      sptl_results = sptl::mst(edges);
     });
     if (should_check) {
       do_pbbs();
