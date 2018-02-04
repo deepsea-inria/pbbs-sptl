@@ -28,6 +28,7 @@
 #include "quicksort.hpp"
 #include "transpose.hpp"
 #include "sprandgen.hpp"
+#include "spparray.hpp"
 
 #ifndef _PBBS_SPTL_SAMPLESORT_H_
 #define _PBBS_SPTL_SAMPLESORT_H_
