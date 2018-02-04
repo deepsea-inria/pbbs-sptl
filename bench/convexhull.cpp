@@ -11,7 +11,7 @@
 template <class Item>
 using parray = sptl::parray<Item>;
 
-void pbbs_sptl_call(sptl::bench::measured_type measured, parray<sptl::_point2d<double>>& x) {
+void benchmark(sptl::bench::measured_type measured, parray<sptl::_point2d<double>>& x) {
   deepsea::cmdline::dispatcher d;
   pbbs::_seq<intT> pbbs_result;
   auto do_pbbs = [&] {
@@ -51,6 +51,6 @@ int main(int argc, char** argv) {
       sptl::die("missing infile");
     }
     parray<sptl::_point2d<double>> x = sptl::read_from_file<parray<sptl::_point2d<double>>>(infile);
-    pbbs_sptl_call(measured, x);
+    benchmark(measured, x);
   });
 }

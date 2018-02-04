@@ -2,6 +2,8 @@
 #include "spparray.hpp"
 #include "sprandgen.hpp"
 
+#include "geometry.hpp"
+
 #ifndef _PBBS_SPTL_GEOMETRYDATA
 #define _PBBS_SPTL_GEOMETRYDATA
 
