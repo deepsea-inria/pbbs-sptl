@@ -39,10 +39,10 @@ namespace sptl {
 //      in the new graph are the children in the bfs tree)
 // **************************************************************
 
-pair<int,int> pbfs(int start, graph::graph<int> graph) {
+std::pair<int,int> pbfs(int start, graph::graph<int> graph) {
   int numVertices = graph.n;
   int numEdges = graph.m;
-  graph::vertex<int>* g = graph.V;
+  const graph::vertex<int>* g = graph.V;
   parray<int> frontier;
   frontier.reset(numEdges);
   parray<int> visited(numVertices, 0);
@@ -104,12 +104,12 @@ pair<int,int> pbfs(int start, graph::graph<int> graph) {
           }
           else frontier_next_ptr[o + j] = -1;
         }
-       g[v].degree = k;
+        //       g[v].degree = k;
       }
     });
     frontier_size = dps::filter(frontier_next.begin(), frontier_next.begin() + nr, frontier.begin(), [&] (int v) { return v >= 0; });
   }
-  return pair<int, int>(total_visited, round);
+  return std::pair<int, int>(total_visited, round);
 }
   
 } //end namespace

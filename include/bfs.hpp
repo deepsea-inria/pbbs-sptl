@@ -41,7 +41,7 @@ namespace sptl {
 
 struct nonNegF{bool operator() (int a) {return (a>=0);}};
 
-pair<int,int> bfs(int start, graph::graph<int> graph) {
+std::pair<int,int> bfs(int start, graph::graph<int> graph) {
   int numVertices = graph.n;
   int numEdges = graph.m;
   graph::vertex<int>* g = graph.V;
@@ -105,7 +105,7 @@ pair<int,int> bfs(int start, graph::graph<int> graph) {
     // Filter out the empty slots (marked with -1)
     frontier_size = dps::filter(frontier_next.begin(), frontier_next.begin() + nr, frontier.begin(), [&] (int v) { return v >= 0; });
   }
-  return pair<int, int>(total_visited, round);
+  return std::pair<int, int>(total_visited, round);
 }
   
 } //end namespace
