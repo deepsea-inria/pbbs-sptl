@@ -30,7 +30,7 @@
 #include <iostream>
 
 #include "blockradixsort.hpp"
-#include "spsort.hpp"
+#include "merge.hpp"
 #include "utils.hpp"
 
 #ifndef _SPTL_PBBS_SUFFIXARRAY_H_
@@ -190,9 +190,11 @@ parray<intT> suffix_array_rec(intT* s, intT n, intT K) {
   intT o = (n % 3 == 1) ? 1 : 0;
   parray<intT> SA;
   SA.reset(n);
-  auto suffixes0beg = suffixes0.begin() + o;
-  auto suffixes12beg = suffixes12.begin() + 1 - o;
-  merge(suffixes0beg, suffixes0beg + (n0 - o), suffixes12beg, suffixes12beg + (n12 + o - 1), SA.begin(), comp);
+  // note: alternatively, can use the builtin sptl merge function
+  //  auto suffixes0beg = suffixes0.begin() + o;
+  //  auto suffixes12beg = suffixes12.begin() + 1 - o;
+  //  merge(suffixes0beg, suffixes0beg + (n0 - o), suffixes12beg, suffixes12beg + (n12 + o - 1), SA.begin(), comp);
+  merge(suffixes0.begin()+o,n0-o,suffixes12.begin()+1-o,n12+o-1,SA.begin(),comp);
   return SA;
 }
 
