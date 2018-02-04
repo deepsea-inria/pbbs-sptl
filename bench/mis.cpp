@@ -22,8 +22,8 @@ void benchmark(sptl::bench::measured_type measured) {
   parray<char> sptl_results;
   char* pbbs_results = nullptr;
   auto do_pbbs = [&] {
-    parray<pbbs::graph::vertex<int>> vs(x.n, [&] (int i) {
-      return pbbs::graph::vertex<int>(x.V[i].Neighbors, x.V[i].degree);
+    parray<pbbs::graph::vertex<intT>> vs(x.n, [&] (intT i) {
+      return pbbs::graph::vertex<intT>(x.V[i].Neighbors, x.V[i].degree);
     });
     pbbs::graph::graph<intT> y(vs.begin(), x.n, x.m, x.allocatedInplace);
     measured([&] {

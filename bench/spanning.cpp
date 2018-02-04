@@ -42,9 +42,9 @@ void benchmark(sptl::bench::measured_type measured) {
     sptl::die("missing infile");
   }
   sptl::graph::graph<intT> x = sptl::read_from_file<sptl::graph::graph<intT>>(infile);
-  sptl::graph::edgeArray<int> edges = to_edge_array(x);
+  sptl::graph::edgeArray<intT> edges = to_edge_array(x);
   bool should_check = deepsea::cmdline::parse_or_default_bool("check", false);
-  parray<int> sptl_results;
+  parray<intT> sptl_results;
   std::pair<intT*,intT> pbbs_results;
   pbbs_results.first = nullptr;
   auto do_pbbs = [&] {
