@@ -534,15 +534,15 @@ let plot() =
         Mk_table.cell ~escape:false ~last:false add ""
       done;
       Mk_table.cell ~escape:false ~last:false add "PBBS";
-      Mk_table.cell ~escape:false ~last:false add "Encore";
+      Mk_table.cell ~escape:false ~last:false add "Oracle";
       Mk_table.cell ~escape:false ~last:false add "PBBS";
-      Mk_table.cell ~escape:false ~last:false add "Encore";
+      Mk_table.cell ~escape:false ~last:false add "Oracle";
       ~~ List.iteri multi_proc (fun i proc ->
         let last = i + 1 = nb_multi_proc in
 	      Mk_table.cell ~escape:false ~last:false add "PBBS";
-	      Mk_table.cell ~escape:false ~last:false add "Encore";
+	      Mk_table.cell ~escape:false ~last:false add "Oracle";
 	      Mk_table.cell ~escape:false ~last:false add "PBBS";
-	      Mk_table.cell ~escape:false ~last:false add "Encore";
+	      Mk_table.cell ~escape:false ~last:false add "Oracle";
 	      Mk_table.cell ~escape:false ~last:last add "Nb threads");
       add Latex.tabular_newline;
 
