@@ -697,9 +697,6 @@ let pretty_input_name n =
 let make() =
   build "." all_progs arg_virtual_build
 
-let mk_never_promote =
-  mk int "never_promote" 1
-
 let file_results_sptl_elision exp_name =
   file_results (exp_name ^ "_elision")
 
@@ -851,7 +848,7 @@ let plot() =
 	        in
 	        let sptl_elision_sec =
             let results_sptl_elision = Results.filter env_rows results_sptl_elision in
-            let [col] = (mk_sptl_prog benchmark.bd_name & mk_never_promote & mk_single_proc) env in
+            let [col] = (mk_sptl_elision_prog benchmark.bd_name & mk_single_proc) env in
 	          let results = Results.filter col results_sptl_elision in
 	          Results.get_mean_of "exectime" results
 	        in
@@ -898,7 +895,7 @@ let plot() =
         let results = Results.filter col results in
         let sec = eval_exectime env all_results results in
 	      let util = Results.get_mean_of "utilization" results in
- 	      let nb_threads = Results.get_mean_of "nb_promotions" results in
+	      let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
 	      let nb_threads = if nb_threads = 0. then 1. else nb_threads
 	      in
   	    (sec, util, nb_threads)

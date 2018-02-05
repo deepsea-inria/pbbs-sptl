@@ -50,7 +50,16 @@ void launch(int argc, char** argv, const Body& body) {
   };
   sptl::launch(argc, argv, [&] {
     load_presets_by_host();
+    /* To use the custom cilk runtime, set the environment variable as such:
+     *   export LD_LIBRARY_PATH=../../cilk-plus-rts/lib:$LD_LIBRARY_PATH
+     */
+#ifdef CILK_RUNTIME_WITH_STATS
+    __cilkg_take_snapshot_for_stats();
+#endif
     body(f);
+#ifdef CILK_RUNTIME_WITH_STATS
+    __cilkg_dump_encore_stats_to_stderr();
+#endif
   });
 }
   
