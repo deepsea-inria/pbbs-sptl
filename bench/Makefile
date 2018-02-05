@@ -22,6 +22,15 @@ INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_HOME) -I $(CMDLINE_HOME) -I $(SPTL_HOME) -I $
 
 -include settings.sh
 
+####################################
+# Example settings.sh 
+#
+# USE_HWLOC=1
+# USE_CILK=1
+# USE_32_BIT_WORD_SIZE=1
+# CUSTOM_MALLOC_PREFIX=-ltcmalloc 
+# CILK_EXTRAS_PREFIX=-L ../../../../cilk-plus-rts/lib -I ../../../../cilk-plus-rts/include -ldl
+
 HWLOC_FLAGS=`pkg-config --cflags hwloc`
 HWLOC_LIBS=`pkg-config --libs hwloc`
 HWLOC_PREFIX_ALL=-DSPTL_HAVE_HWLOC $(HWLOC_FLAGS) $(HWLOC_LIBS)
@@ -35,6 +44,8 @@ CILK_PREFIX=
 ifeq ($(strip $(USE_CILK)),1)
 	CILK_PREFIX=-fcilkplus -lcilkrts -DSPTL_USE_CILK_PLUS_RUNTIME -DUSE_CILK_PLUS_RUNTIME
 endif
+
+CILK_PREFIX+=$(CILK_EXTRAS_PREFIX)
 
 SMALL_WORD_PREFIX=-DSPTL_SIZE_BITS32
 LARGE_WORD_PREFIX=-m64 -DSPTL_SIZE_BITS64
