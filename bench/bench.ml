@@ -245,7 +245,7 @@ let mk_bfs_prog inner_loop extension lib_type =
   (mk string "prog" (prog inner_loop extension)) & (mk_lib_type lib_type)
 
 let mk_progs =
-  ((mk_list string "prog" oracle_progs)  & (mk_lib_type "pctl")) ++
+  ((mk_list string "prog" oracle_progs)  & (mk_lib_type "sptl")) ++
     ((mk_list string "prog" baseline_progs)  & (mk_lib_type "pbbs"))
 
 let run() =
@@ -282,7 +282,7 @@ let main_formatter =
 
 let eval_relative_main = fun env all_results results ->
   let pbbs_results = ~~ Results.filter_by_params all_results (
-                          from_env (Env.add (Env.filter_keys ["type"; "infile"; "proc"] env) "lib_type" (Env.Vstring "pbbs"))) in
+                          from_env (Env.add (Env.filter_keys ["type"; "infile"; "proc"] env) "library" (Env.Vstring "pbbs"))) in
   if pbbs_results = [] then Pbench.error ("no results for pbbs library");
   let v = Results.get_mean_of "exectime" results in
   let b = Results.get_mean_of "exectime" pbbs_results in
@@ -306,7 +306,6 @@ let plot() =
   let pdf_file = file_tables name in
   Mk_table.build_table tex_file pdf_file (fun add ->
 (*    let l = "S[table-format=2.2]" in*) (* later: use *)
-    (*let ls = String.concat "|" (XList.init (2 * nb_inner_loop + 2) (fun _ -> "d{3.2}")) in*)
     let ls = "c|d{3.2}|c|d{3.2}|@{}d{3.2}@{}" in
     let hdr = Printf.sprintf "@{}l@{\,}|%s@{}" ls in
     add (Latex.tabular_begin hdr);                                    
@@ -317,10 +316,8 @@ let plot() =
           let l = if last then "c" else "c|" in
           let label = Latex.tabular_multicol 2 l n in
           Mk_table.cell ~escape:false ~last:last add label);
-    (* let label = Latex.tabular_multicol 2 "c" "" in *)
     let label = Latex.tabular_multicol 1 "c" "Ours nested" in 
     Mk_table.cell ~escape:false ~last:true add label;
-    (*add Latex.tabular_newline;*)
     add "\\\\ \cline{1-5}";
     let _ = Mk_table.cell ~escape:false ~last:false add "Graph" in
     for i=1 to nb_inner_loop do (
@@ -328,9 +325,7 @@ let plot() =
       Mk_table.cell ~escape:false ~last:false add l;
       Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{Ours}")
     done;
-    (*Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{{\\begin{tabular}[x]{@{}c@{}}PBBS Nested vs. \\\\PBBS Flat\\end{tabular}}}";*)
     Mk_table.cell ~escape:false ~last:true add "\multicolumn{1}{@{}c@{}}{{\\begin{tabular}[x]{@{}c@{}}vs. \\\\PBBS flat\\end{tabular}}}";
-    (* Mk_table.cell ~escape:false ~last:true add "\multicolumn{1}{l}{{\\begin{tabular}[x]{@{}c@{}}Ours Nested vs. \\\\PBBS Flat\\end{tabular}}}";*)
     add Latex.tabular_newline;
         let all_results = Results.from_file results_file in
         let results = all_results in
@@ -341,13 +336,13 @@ let plot() =
           let env = Env.append env env_rows in
           let row_title = main_formatter env_rows in
           let _ = Mk_table.cell ~escape:false ~last:false add row_title in
-          let exectime_bfs_pctl = ref 0.0 in
-          let exectime_pbfs_pctl = ref 0.0 in
+          let exectime_bfs_sptl = ref 0.0 in
+          let exectime_pbfs_sptl = ref 0.0 in
           let exectime_bfs_pbbs = ref 0.0 in
           let exectime_pbfs_pbbs = ref 0.0 in
           ~~ List.iteri arg_inner_loop (fun inner_loop_i inner_loop ->
             let (pbbs_str, b) =
-              let [col] = (mk_bfs_prog inner_loop "manc" "pbbs") env in
+              let [col] = (mk_bfs_prog inner_loop "sptl" "pbbs") env in
               let env = Env.append env col in
               let results = Results.filter col results in
               let b = eval_exectime env all_results results in
@@ -358,12 +353,12 @@ let plot() =
               (str ^ " " ^ err, b)
             in
             let _ = Mk_table.cell ~escape:false ~last:false add pbbs_str in
-              let (pctl_str, grade_str) = 
-                let [col] = (mk_bfs_prog inner_loop "unks" "pctl") env in
+              let (sptl_str, grade_str) = 
+                let [col] = (mk_bfs_prog inner_loop "sptl" "sptl") env in
                 let env = Env.append env col in
                 let results = Results.filter col results in
                 let (_,v) = eval_relative_main env all_results results in
-                let _ = if inner_loop = "bfs" then (exectime_bfs_pctl := v) else (exectime_pbfs_pctl := v) in
+                let _ = if inner_loop = "bfs" then (exectime_bfs_sptl := v) else (exectime_pbfs_sptl := v) in
                 let vs = string_of_percentage_change b v in
                 let e = eval_exectime_stddev env all_results results in
                 let err = if arg_print_err then Printf.sprintf "(%.2f%s)" e "$\\sigma$" else "" in
@@ -379,12 +374,10 @@ let plot() =
                 in
                 (Printf.sprintf "%s %s" vs err, grade)
               in
-              Mk_table.cell ~escape:false add pctl_str;
+              Mk_table.cell ~escape:false add sptl_str;
             ());
-          (*let str_diff_pbbs = string_of_percentage_change (!exectime_bfs_pbbs) (!exectime_pbfs_pbbs) in
-          Mk_table.cell ~escape:false ~last:false add str_diff_pbbs;*)
-          let str_diff_pctl = string_of_percentage_change (!exectime_bfs_pbbs) (!exectime_pbfs_pctl) in
-          Mk_table.cell ~escape:false ~last:true add str_diff_pctl;
+          let str_diff_sptl = string_of_percentage_change (!exectime_bfs_pbbs) (!exectime_pbfs_sptl) in
+          Mk_table.cell ~escape:false ~last:true add str_diff_sptl;
           add Latex.tabular_newline);
         add Latex.tabular_end;
         add Latex.new_page;
