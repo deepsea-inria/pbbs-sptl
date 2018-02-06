@@ -801,7 +801,7 @@ let plot() =
 	      Mk_table.cell ~escape:false ~last:false add "(s)";
 	      Mk_table.cell ~escape:false ~last:false add "";
 	      Mk_table.cell ~escape:false ~last:false add (Latex.tabular_multicol 2 "|c|" "Utilization");
-	      Mk_table.cell ~escape:false ~last:last add "Enc./PBBS");
+	      Mk_table.cell ~escape:false ~last:last add "Orc./PBBS");
       add Latex.tabular_newline;
 
       (* Emit two rows for each benchmark *)
