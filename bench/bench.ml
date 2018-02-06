@@ -441,7 +441,7 @@ let mk_infiles ty descr = fun e ->
 let input_descriptor_hull = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
   "array_point2d_in_circle_large.bin", string "2d", "in circle";
   "array_point2d_kuzmin_large.bin", string "2d", "kuzmin";
-  "array_point2d_on_circle_medium.bin", string  "2d", "on circle";
+  "array_point2d_on_circle_large.bin", string  "2d", "on circle";
 ]
 
 let mk_hull_infiles = mk_infiles "type" input_descriptor_hull
@@ -504,7 +504,7 @@ let input_descriptor_radixsort = List.map (fun (p, t, n) -> (path_to_infile p, t
   "array_int_random_large.bin", string "int", "random";    
   "array_int_exponential_large.bin", string "int", "exponential";
   "array_pair_int_int_random_256_large.bin", string "pair_int_int", "random pair" (*"random int pair 256" *);
-(*  "array_pair_int_int_random_100000000_large.bin", string "pair_int_int", "random int pair 10m";*)
+(*  "array_pair_int_int_random_100000000_large.bin", string "pair_int_int", "random pair 10m";*)
 ]
 
 let mk_radixsort_infiles = mk_infiles "type" input_descriptor_radixsort
@@ -537,7 +537,7 @@ let mk_pbfs_infiles = mk_infiles "source" input_descriptor_pbfs
 let input_descriptor_mis = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
   "cube_large.bin", int 0, "cube";
   "rmat24_large.bin", int 0, "rMat24";
-(*  "rmat27_large.bin", int 0, "rMat27";*)
+  "rmat27_large.bin", int 0, "rMat27";
 ]
 
 let mk_mis_infiles = mk_infiles "source" input_descriptor_mis
@@ -579,10 +579,10 @@ let mk_suffixarray_infiles = mk_infiles "type" input_descriptor_suffixarray
 
 let input_descriptor_nearestneighbors = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
   "array_point2d_kuzmin_medium.bin", string "array_point2d", "kuzmin";
-(*  "array_point3d_on_sphere_medium.bin", string "array_point3d", "on sphere";*)
+  "array_point3d_on_sphere_medium.bin", string "array_point3d", "on sphere";
   "array_point3d_plummer_medium.bin", string "array_point3d", "plummer"; 
-  (*  "array_point2d_in_square_medium.bin", string "array_point2d", "in square";*)
-(*  "array_point3d_in_cube_medium.bin", string "array_point3d", "in cube"; *)
+(*  "array_point2d_in_square_medium.bin", string "array_point2d", "in square";*)
+  "array_point3d_in_cube_medium.bin", string "array_point3d", "in cube"; 
 ]
 
 let mk_nearestneighbors_infiles = mk_infiles "type" input_descriptor_nearestneighbors
@@ -611,6 +611,7 @@ let mk_refine_infiles = mk_infiles "type" input_descriptor_refine
 (* Raycast *)
 
 let input_descriptor_raycast = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
+  "turbine_ray_cast_dataset.bin", string "raycast", "turbine";
   "happy_ray_cast_dataset.bin", string "raycast", "happy";
   "xyzrgb_manuscript_ray_cast_dataset.bin", string "raycast", "xyzrgb";
 ]
