@@ -42,14 +42,7 @@ void load_presets_by_host() {
 template <class Body>
 void launch(int argc, char** argv, const Body& body) {
   deepsea::cmdline::set(argc, argv);
-#ifdef SPTL_USE_CILK_PLUS_RUNTIME
-  // The setup here is redundant with the launch function in
-  // sptl/include/spmachine.hpp because (for some unknown
-  // reason) the setup performed in the latter module doesn't
-  // happen.
-  int nb_proc = deepsea::cmdline::parse_or_default_int("proc", 1);
-  __cilkrts_set_param("nworkers", std::to_string(nb_proc).c_str());
-#endif
+  unsigned nb_proc = deepsea::cmdline::parse_or_default_int("proc", 1);
   auto f = [&] (thunk_type measured) {
     auto start = std::chrono::system_clock::now();
     measured();
@@ -57,7 +50,7 @@ void launch(int argc, char** argv, const Body& body) {
     std::chrono::duration<float> diff = end - start;
     printf ("exectime %.3lf\n", diff.count());
   };
-  sptl::launch(argc, argv, [&] {
+  sptl::launch(argc, argv, nb_proc, [&] {
     load_presets_by_host();
     /* To use the custom cilk runtime, set the environment variable as such:
      *   export LD_LIBRARY_PATH=../../cilk-plus-rts/lib:$LD_LIBRARY_PATH
