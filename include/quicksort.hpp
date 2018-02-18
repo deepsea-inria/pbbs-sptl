@@ -77,9 +77,9 @@ void quick_sort(E* A, intT n, BinPred f) {
         quick_sort(M, A+n-M, f); // Exclude all elts that equal pivot
       });
     }
-  }, [&] {
+  }/*, [&] {
     std::sort(A, A + n, f);
-  });
+  }*/);
 }
   
 } // end namespace
