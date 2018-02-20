@@ -289,18 +289,6 @@ let eval_relative_main = fun env all_results results ->
   (b, v)
 
 let plot() =
-  let pretty_extension ext =
-    let l = String.length ext in
-    let plen = 4 in
-    if l < plen then
-      "<unknown extension>"
-    else
-      "Ours"
-(*      let p = String.sub ext 0 plen in
-      let mu = int_of_string (String.sub ext plen (l - plen)) in
-      sprintf "{\\begin{tabular}[x]{@{}c@{}}Ours\\\\($\kappa$ := %d%ssec.)\\end{tabular}}" mu "$\\mu$" *)
-  in
-
   let nb_inner_loop = List.length arg_inner_loop in
   let tex_file = file_tables_src name in
   let pdf_file = file_tables name in
