@@ -141,6 +141,8 @@ parray<intT> hull(parray<point2d>& p) {
   });
   intT n1 = (intT)dps::pack(is_top_hull.cbegin(), tmp.cbegin(), tmp.cend(), indices.begin());
   intT n2 = (intT)dps::pack(is_bottom_hull.cbegin(), tmp.cbegin(), tmp.cend(), indices.begin() + n1);
+  is_top_hull.clear();
+  is_bottom_hull.clear();
   intT m1; intT m2;
   fork2([&] {
     m1 = quick_hull(indices.begin(), tmp.begin(), p.begin(), n1, l, r);
