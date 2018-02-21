@@ -396,14 +396,10 @@ let all_benchmarks =
     
 let sptl_prog_of n = n ^ ".sptl"
 let sptl_elision_prog_of n = n ^ ".sptl_elision"
-let cilk_prog_of n = n ^ ".sptl"
-let cilk_elision_prog_of n = n ^ ".sptl_elision"
                              
 let sptl_progs = List.map sptl_prog_of all_benchmarks
 let sptl_elision_progs = List.map sptl_elision_prog_of all_benchmarks      
-let cilk_progs = List.map cilk_prog_of all_benchmarks
-let cilk_elision_progs = List.map cilk_elision_prog_of all_benchmarks
-let all_progs = List.concat [sptl_progs; sptl_elision_progs; cilk_progs; cilk_elision_progs]
+let all_progs = List.concat [sptl_progs; sptl_elision_progs]
 
 let path_to_infile n = "_data/" ^ n
 
@@ -443,7 +439,7 @@ let mk_pbbs_lib =
   mk string "library" "pbbs"
     
 let mk_pbbs_prog n =
-    (mk string "prog" (cilk_prog_of n))
+    (mk string "prog" (sptl_prog_of n))
   & mk_pbbs_lib
 
 let mk_single_proc = mk int "proc" 1
@@ -455,7 +451,7 @@ let mk_sptl_elision_prog n =
   & mk_sptl_lib
     
 let mk_pbbs_elision_prog n =
-    (mk string "prog" (cilk_elision_prog_of n))
+    (mk string "prog" (sptl_elision_prog_of n))
   & mk_pbbs_lib
     
 type input_descriptor =
@@ -592,7 +588,7 @@ let mk_refine_infiles = mk_infiles "type" input_descriptor_refine
 (* Raycast *)
 
 let input_descriptor_raycast = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
-  "turbine_ray_cast_dataset.bin", string "raycast", "turbine";
+(*  "turbine_ray_cast_dataset.bin", string "raycast", "turbine";*)
   "happy_ray_cast_dataset.bin", string "raycast", "happy";
   "xyzrgb_manuscript_ray_cast_dataset.bin", string "raycast", "xyzrgb";
 ]
