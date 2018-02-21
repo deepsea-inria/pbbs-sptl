@@ -109,6 +109,7 @@ parray<sptl::size_type> mst(graph::wghEdgeArray<int> G) {
 
   UnionFindStep UFStep(z.begin(), UF, R.begin(), mstFlags.begin());
   speculative_for(UFStep, 0, l, 100);
+  z.clear();
 
   parray<bool> flags(G.m - l, [&] (int i) {
     int j = y[i + l].second;
