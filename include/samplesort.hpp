@@ -102,6 +102,7 @@ void sample_sort (E* a, intT n, BinPred compare) {
     intT o = over_sample * k;
     return sample_set[o];
   });
+  sample_set.clear();
   segments = 2 * segments - 1;
   parray<E> b;
   b.reset(rows * row_length);
@@ -144,6 +145,9 @@ void sample_sort (E* a, intT n, BinPred compare) {
       return complexities[hi - 1] - complexities[lo - 1];
     }
   };
+  b.clear();
+  offset_a.clear();
+  segments_sizes.clear();
   parallel_for((intT)0, (intT)(pivots_size + 1), complexity_fct, [&] (intT i) {
     intT offset = offset_b[(2 * i) * rows];
     if (i == 0) {
