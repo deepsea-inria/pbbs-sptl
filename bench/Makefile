@@ -1,14 +1,12 @@
 
-PBENCH_PATH=../../pbench
-
-include $(PBENCH_PATH)/Makefile_common
-
 PACKAGE_PATH=../../
 CMDLINE_HOME=$(PACKAGE_PATH)/cmdline/include
 CHUNKEDSEQ_HOME=$(PACKAGE_PATH)/chunkedseq/include
 SPTL_HOME=$(PACKAGE_PATH)/sptl/include
 PBBS_SPTL_HOME=$(PACKAGE_PATH)/pbbs-sptl/include
 PBBS_HOME=$(PACKAGE_PATH)/pbbs-include/
+
+PBENCH_PATH=../../pbench
 
 INCLUDE_FILES=$(wildcard *.hpp) $(wildcard $(CHUNKEDSEQ_HOME)/*.hpp) $(wildcard $(CMDLINE_HOME)/*.hpp) $(wildcard $(SPTL_HOME)/*.hpp) $(wildcard $(PBBS_SPTL_HOME)/*.hpp) $(wildcard $(PBBS_HOME)/*.hpp)
 
@@ -30,6 +28,8 @@ INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_HOME) -I $(CMDLINE_HOME) -I $(SPTL_HOME) -I $
 # USE_32_BIT_WORD_SIZE=1
 # CUSTOM_MALLOC_PREFIX=-ltcmalloc 
 # CILK_EXTRAS_PREFIX=-L ../../../../cilk-plus-rts/lib -I ../../../../cilk-plus-rts/include -ldl -DCILK_RUNTIME_WITH_STATS
+
+include $(PBENCH_PATH)/Makefile_common
 
 HWLOC_FLAGS=`pkg-config --cflags hwloc`
 HWLOC_LIBS=`pkg-config --libs hwloc`
