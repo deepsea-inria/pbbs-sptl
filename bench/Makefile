@@ -1,7 +1,7 @@
 
 PACKAGE_PATH=../../
 
-PBENCH_HOME=../../pbench
+PBENCH_PATH=../../pbench
 
 CMDLINE_PATH=$(PACKAGE_PATH)/cmdline/include
 CHUNKEDSEQ_PATH=$(PACKAGE_PATH)/chunkedseq/include
@@ -33,7 +33,7 @@ INCLUDE_FILES=$(wildcard *.hpp) $(wildcard $(CHUNKEDSEQ_PATH)/*.hpp) $(wildcard 
 
 INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_PATH) -I $(CMDLINE_PATH) -I $(SPTL_PATH) -I $(PBBS_SPTL_PATH) -I $(PBBS_INCLUDE_PATH)
 
-include $(PBENCH_HOME)/Makefile_common
+include $(PBENCH_PATH)/Makefile_common
 
 HWLOC_FLAGS=`pkg-config --cflags hwloc`
 HWLOC_LIBS=`pkg-config --libs hwloc`
