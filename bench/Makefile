@@ -1,16 +1,13 @@
 
 PACKAGE_PATH=../../
-CMDLINE_HOME=$(PACKAGE_PATH)/cmdline/include
-CHUNKEDSEQ_HOME=$(PACKAGE_PATH)/chunkedseq/include
-SPTL_HOME=$(PACKAGE_PATH)/sptl/include
-PBBS_SPTL_HOME=$(PACKAGE_PATH)/pbbs-sptl/include
-PBBS_HOME=$(PACKAGE_PATH)/pbbs-include/
 
-PBENCH_PATH=../../pbench
+PBENCH_HOME=../../pbench
 
-INCLUDE_FILES=$(wildcard *.hpp) $(wildcard $(CHUNKEDSEQ_HOME)/*.hpp) $(wildcard $(CMDLINE_HOME)/*.hpp) $(wildcard $(SPTL_HOME)/*.hpp) $(wildcard $(PBBS_SPTL_HOME)/*.hpp) $(wildcard $(PBBS_HOME)/*.hpp)
-
-INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_HOME) -I $(CMDLINE_HOME) -I $(SPTL_HOME) -I $(PBBS_SPTL_HOME) -I $(PBBS_HOME)
+CMDLINE_PATH=$(PACKAGE_PATH)/cmdline/include
+CHUNKEDSEQ_PATH=$(PACKAGE_PATH)/chunkedseq/include
+SPTL_PATH=$(PACKAGE_PATH)/sptl/include
+PBBS_INCLUDE_PATH=$(PACKAGE_PATH)/pbbs-include/
+PBBS_SPTL_PATH=$(PACKAGE_PATH)/pbbs-sptl/include
 
 ####################################################################
 # Makefile options
@@ -28,8 +25,15 @@ INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_HOME) -I $(CMDLINE_HOME) -I $(SPTL_HOME) -I $
 # USE_32_BIT_WORD_SIZE=1
 # CUSTOM_MALLOC_PREFIX=-ltcmalloc 
 # CILK_EXTRAS_PREFIX=-L ../../../../cilk-plus-rts/lib -I ../../../../cilk-plus-rts/include -ldl -DCILK_RUNTIME_WITH_STATS
+####################################
 
-include $(PBENCH_PATH)/Makefile_common
+####################################################################
+
+INCLUDE_FILES=$(wildcard *.hpp) $(wildcard $(CHUNKEDSEQ_PATH)/*.hpp) $(wildcard $(CMDLINE_PATH)/*.hpp) $(wildcard $(SPTL_PATH)/*.hpp) $(wildcard $(PBBS_SPTL_PATH)/*.hpp) $(wildcard $(PBBS_INCLUDE_PATH)/*.hpp)
+
+INCLUDE_DIRECTIVES=-I $(CHUNKEDSEQ_PATH) -I $(CMDLINE_PATH) -I $(SPTL_PATH) -I $(PBBS_SPTL_PATH) -I $(PBBS_INCLUDE_PATH)
+
+include $(PBENCH_HOME)/Makefile_common
 
 HWLOC_FLAGS=`pkg-config --cflags hwloc`
 HWLOC_LIBS=`pkg-config --libs hwloc`
