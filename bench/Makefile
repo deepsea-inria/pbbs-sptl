@@ -37,6 +37,11 @@ include $(PBENCH_PATH)/Makefile_common
 
 HWLOC_FLAGS=`pkg-config --cflags hwloc`
 HWLOC_LIBS=`pkg-config --libs hwloc`
+ifeq ($(strip $(USE_MANUAL_HWLOC_PATH)),1)
+	HWLOC_FLAGS=$(MY_HWLOC_FLAGS)
+	HWLOC_LIBS=$(MY_HWLOC_LIBS)
+endif
+
 HWLOC_PREFIX_ALL=-DSPTL_HAVE_HWLOC $(HWLOC_FLAGS) $(HWLOC_LIBS)
 
 HWLOC_PREFIX=
