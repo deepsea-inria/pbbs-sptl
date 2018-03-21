@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include "utils.hpp"
+#include "sprandgen.hpp"
 //typedef int vindex;
 
 #ifndef _SPTL_GRAPH_INCLUDED
@@ -123,6 +124,42 @@ std::ostream& operator<<(std::ostream& out, const vertex<intT>& v) {
   }
   out << "}";
   return out;
+}
+
+template <class intT>
+edgeArray<intT> to_edge_array(graph<intT>& G) {
+  int num_rows = G.n;
+  int non_zeros = G.m;
+  vertex<intT>* v = G.V;
+  edge<intT>* e = (edge<intT>*)malloc(non_zeros * sizeof(edge<intT>));
+
+  int k = 0;
+  for (int i = 0; i < num_rows; i++) {
+    for (int j = 0; j < v[i].degree; j++) {
+      if (i < v[i].Neighbors[j]) {
+        e[k++] = edge<int>(i, v[i].Neighbors[j]);
+      }
+    }
+  }
+  return edgeArray<intT>(e, num_rows, num_rows, non_zeros);
+}
+
+template <class intT>
+wghEdgeArray<intT> to_weighted_edge_array(graph<intT>& G) {
+  int n = G.n;
+  int m = G.m;
+  vertex<intT>* v = G.V;
+  wghEdge<intT>* e = (wghEdge<intT>*)malloc(m * sizeof(wghEdge<intT>));
+
+  int k = 0;
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < v[i].degree; j++) {
+      if (i < v[i].Neighbors[j]) {
+        e[k++] = wghEdge<intT>(i, v[i].Neighbors[j], hashi(k));
+      }
+    }
+  }
+  return wghEdgeArray<int>(e, n, m);
 }
 
 } // end namespace
