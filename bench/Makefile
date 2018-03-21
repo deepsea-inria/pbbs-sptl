@@ -1,8 +1,7 @@
 
 PACKAGE_PATH=../../
 
-PBENCH_PATH=../../pbench
-
+PBENCH_PATH=$(PACKAGE_PATH)/pbench
 CMDLINE_PATH=$(PACKAGE_PATH)/cmdline/include
 CHUNKEDSEQ_PATH=$(PACKAGE_PATH)/chunkedseq/include
 SPTL_PATH=$(PACKAGE_PATH)/sptl/include
