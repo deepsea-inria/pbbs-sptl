@@ -21,6 +21,8 @@ let
 
   self = {
 
+    hwloc = pkgs.hwloc;
+
     cilk-plus-rts-with-stats = callPackage ../../cilk-plus-rts-with-stats/script/default.nix { };
 
     cmdline = callPackage ../../cmdline/script/default.nix { };
@@ -60,7 +62,7 @@ stdenv.mkDerivation rec {
     in
     let getNbCoresScript = pkgs.writeScript "get-nb-cores" ''
       #!/usr/bin/env bash
-      nb_cores=$( hwloc-ls --only core | wc -l )
+      nb_cores=$( ${hwloc}/bin/hwloc-ls --only core | wc -l )
       echo $nb_cores > nb_cores
     '';
     in
