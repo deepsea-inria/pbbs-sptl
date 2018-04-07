@@ -9,6 +9,13 @@
 #
 # nix-build -E 'with (import <nixpkgs> {}); callPackage ./pbbs-sptl/script/benchmark.nix { preExistingDataFolder="/home/mrainey/pctl_data/"; }'
 
+# Later:
+#  - use ipfs over http
+#  - get hwloc ocaml R and texlive to be runtime dependencies
+#  - make hwloc option a la mkOption
+#  - fix the build docs
+#  - find a way to pass source files cleanly via fetchFromGithub
+
 let
 
   callPackage = pkgs.lib.callPackageWith (pkgs // self);
