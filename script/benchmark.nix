@@ -1,5 +1,6 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
+  sources ? import ./default-sources.nix,
   preExistingDataFolder ? "",
   buildDocs ? false
 }:
@@ -14,11 +15,10 @@
 #  - get hwloc ocaml R and texlive to be runtime dependencies
 #  - make hwloc option a la mkOption
 #  - fix the build docs
-#  - find a way to pass source files cleanly via fetchFromGithub
 
 let
 
-  callPackage = pkgs.lib.callPackageWith (pkgs // self);
+  callPackage = pkgs.lib.callPackageWith (pkgs // sources // self);
 
   self = {
 
@@ -37,7 +37,7 @@ let
     pbbs-sptl = callPackage ./default.nix { useHwloc = true; };
 
   };
-  
+
 in
 
 stdenv.mkDerivation rec {
