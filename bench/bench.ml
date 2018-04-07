@@ -28,7 +28,12 @@ let arg_proc =
     else if hostname = "beast" then
       [ 8; ]
     else
-      [ 1; ]
+      let _ = system "./get-nb-cores" false in
+      let chan = open_in "nb_cores" in
+      let str = try input_line chan
+      with End_of_file -> (close_in chan; "1")
+      in
+      [ int_of_string str; ]
   in
   let default =
     if List.exists (fun p -> p = 1) default then

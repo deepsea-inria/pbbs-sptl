@@ -13,7 +13,6 @@
 # Later:
 #  - use ipfs over http
 #  - get hwloc ocaml R and texlive to be runtime dependencies
-#  - make hwloc option a la mkOption
 #  - fix the build docs
 
 let
@@ -59,9 +58,16 @@ stdenv.mkDerivation rec {
       else
         "ln -s ${pathToInputData} bench/_data";
     in
+    let getNbCoresScript = pkgs.writeScript "get-nb-cores" ''
+      #!/usr/bin/env bash
+      nb_cores=$( hwloc-ls --only core | wc -l )
+      echo $nb_cores > nb_cores
+    '';
+    in
     let installScript = pkgs.writeScript "install-script" ''
       #!/usr/bin/env bash
       cp -r --no-preserve=mode ${pbbs-sptl}/bench/ bench/
+      cp ${getNbCoresScript} bench/get-nb-cores
       ${dataFolderInit}
       mkdir -p pbench/
       cp -r --no-preserve=mode ${pbench}/lib/ pbench/
@@ -73,6 +79,7 @@ stdenv.mkDerivation rec {
     ''
       mkdir -p $out/bin
       cp ${installScript} $out/bin/install-script
+      cp ${getNbCoresScript} $out/bin/get-nb-cores
       chmod u+x $out/bin/install-script
       ln -s ${pbench}/bin/prun $out/bin/prun
       ln -s ${pbench}/bin/pplot $out/bin/pplot
