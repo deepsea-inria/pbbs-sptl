@@ -9,6 +9,7 @@ let system = XSys.command_must_succeed_or_virtual
 let arg_virtual_run = XCmd.mem_flag "virtual_run"
 let arg_virtual_build = XCmd.mem_flag "virtual_build"
 let arg_nb_runs = XCmd.parse_or_default_int "runs" 1
+let arg_nb_seq_runs = XCmd.parse_or_default_int "seq_runs" 1
 let arg_mode = Mk_runs.mode_from_command_line "mode"
 let arg_skips = XCmd.parse_or_default_list_string "skip" []
 let arg_onlys = XCmd.parse_or_default_list_string "only" []
@@ -39,12 +40,19 @@ let arg_proc =
 let arg_print_err = XCmd.parse_or_default_bool "print_error" false
 let arg_scheduler = XCmd.parse_or_default_string "scheduler" ""
     
-let run_modes =
+let par_run_modes =
   Mk_runs.([
     Mode arg_mode;
     Virtual arg_virtual_run;
     Runs arg_nb_runs; ])
 
+let seq_run_modes =
+  Mk_runs.([
+    Mode arg_mode;
+    Virtual arg_virtual_run;
+    Runs arg_nb_seq_runs; ])
+
+    
 let multi_proc = List.filter (fun p -> p <> 1) arg_proc
 
 (*****************************************************************************)
@@ -249,7 +257,7 @@ let mk_progs =
     ((mk_list string "prog" baseline_progs)  & (mk_lib_type "pbbs"))
 
 let run() =
-  Mk_runs.(call (run_modes @ [
+  Mk_runs.(call (par_run_modes @ [
                     Output results_file;
                     Timeout 400;
                     Args (mk_progs & (mk string "type" "graph") & (mk_infiles graphfiles) & mk_proc);                           
@@ -692,25 +700,31 @@ let nb_multi_proc = List.length multi_proc
         
 let run() =
   List.iter (fun benchmark ->
-    let r mk_progs file_results = 
-      Mk_runs.(call (run_modes @ [
+    let rpar mk_progs file_results = 
+      Mk_runs.(call (par_run_modes @ [
         Output file_results;
         Timeout 400;
         Args (mk_progs & benchmark.bd_infiles); ]))
     in
+    let rseq mk_progs file_results = 
+      Mk_runs.(call (seq_run_modes @ [
+        Output file_results;
+        Timeout 900;
+        Args (mk_progs & benchmark.bd_infiles); ]))
+    in    
     let sptl_prog = mk_sptl_prog benchmark.bd_name in
     let sptl_elision_prog = mk_sptl_elision_prog benchmark.bd_name in
     let pbbs_prog = mk_pbbs_prog benchmark.bd_name in
     let pbbs_elision_prog = mk_pbbs_elision_prog benchmark.bd_name in
     (if nb_multi_proc > 0 then (
-      r ((sptl_prog ++ pbbs_prog) & mk_multi_proc) (file_results benchmark.bd_name))
+      rpar ((sptl_prog ++ pbbs_prog) & mk_multi_proc) (file_results benchmark.bd_name))
      else
        ());
     (if List.exists (fun p -> p = 1) arg_proc then (
-      r (sptl_prog & mk_single_proc) (file_results_sptl_single_proc benchmark.bd_name);
-      r (pbbs_prog & mk_single_proc) (file_results_pbbs_single_proc benchmark.bd_name);
-      r (sptl_elision_prog & mk_single_proc) (file_results_sptl_elision benchmark.bd_name);
-      r (pbbs_elision_prog & mk_single_proc) (file_results_pbbs_elision benchmark.bd_name))
+      rseq (sptl_prog & mk_single_proc) (file_results_sptl_single_proc benchmark.bd_name);
+      rseq (pbbs_prog & mk_single_proc) (file_results_pbbs_single_proc benchmark.bd_name);
+      rseq (sptl_elision_prog & mk_single_proc) (file_results_sptl_elision benchmark.bd_name);
+      rseq (pbbs_elision_prog & mk_single_proc) (file_results_pbbs_elision benchmark.bd_name))
      else
        ())
   ) benchmarks
