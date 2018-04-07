@@ -1,26 +1,24 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
-  fetchurl,
-  pbench,
-  sptl,
-  pbbs-include,
-  cmdline,
-  chunkedseq,
-  cilk-plus-rts-with-stats,
-  gperftools,
+  pbbsSptlSrc ? ../.,
+  pbench ? ../../pbench,
+  sptl ? ../../sptl,
+  pbbs-include ? ../../pbbs-include,
+  cmdline ? ../../cmdline,
+  chunkedseq ? ../../chunkedseq,
+  cilk-plus-rts-with-stats ? ../../cilk-plus-rts-with-stats,
+  gperftools ? pkgs.gperftools,
   useHwloc ? false,
-  hwloc,
+  hwloc ? pkgs.hwloc,
   buildDocs ? false
 }:
 
-stdenv.mkDerivation rec {
-  name = "pbbs-sptl-${version}";
-  version = "v0.1-alpha";
+# Later: make gperftools and hwloc options a la mkOption
 
-  src = fetchurl {
-    url = "https://github.com/deepsea-inria/pbbs-sptl/archive/${version}.tar.gz";
-    sha256 = "0965aac2mycf8xp6hcypfdl2i8h8nnaivry7cqjwnk9jabdvxzzi";
-  };
+stdenv.mkDerivation rec {
+  name = "pbbs-sptl";
+
+  src = pbbsSptlSrc;
 
   buildInputs =
     let docs =
