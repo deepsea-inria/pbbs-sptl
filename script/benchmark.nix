@@ -23,19 +23,19 @@ let
 
     hwloc = pkgs.hwloc;
 
-    cilk-plus-rts-with-stats = callPackage ../../cilk-plus-rts-with-stats/script/default.nix { };
+    cilk-plus-rts-with-stats = callPackage "${sources.cilkRtsSrc}/script/default.nix" { };
 
-    cmdline = callPackage ../../cmdline/script/default.nix { };
+    cmdline = callPackage "${sources.cmdlineSrc}/script/default.nix" { };
 
-    pbench = callPackage ../../pbench/script/default.nix { };
+    pbench = callPackage "${sources.pbenchSrc}/script/default.nix" { };
 
-    chunkedseq = callPackage ../../chunkedseq/script/default.nix { };
+    chunkedseq = callPackage "${sources.chunkedseqSrc}/script/default.nix" { };
 
-    sptl = callPackage ../../sptl/script/default.nix { };
+    sptl = callPackage "${sources.sptlSrc}/script/default.nix" { };
 
-    pbbs-include = callPackage ../../pbbs-include/default.nix { };
+    pbbs-include = callPackage "${sources.pbbsIncludeSrc}/default.nix" { };
 
-    pbbs-sptl = callPackage ./default.nix { useHwloc = true; };
+    pbbs-sptl = callPackage "${sources.pbbsSptlSrc}/script/default.nix" { useHwloc = true; };
 
   };
 
