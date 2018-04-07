@@ -1,14 +1,14 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
   sources ? import ./default-sources.nix,
-  preExistingDataFolder ? "",
+  pathToInputData ? "",
   buildDocs ? false
 }:
 
 # To call,
-#   nix-shell -p 'with (import <nixpkgs> {}); callPackage ~/Work/pbbs-sptl/script/benchmark.nix { preExistingDataFolder="/run/media/rainey/157ddd80-bedc-4915-ba50-649d191a758e/oracle-guided-data/"; }' --pure -p hwloc ipfs ocaml R texlive.combined.scheme-full
+#   nix-shell -p 'with (import <nixpkgs> {}); callPackage ~/Work/pbbs-sptl/script/benchmark.nix { pathToInputData="/run/media/rainey/157ddd80-bedc-4915-ba50-649d191a758e/oracle-guided-data/"; }' --pure -p hwloc ipfs ocaml R texlive.combined.scheme-full
 #
-# nix-build -E 'with (import <nixpkgs> {}); callPackage ./pbbs-sptl/script/benchmark.nix { preExistingDataFolder="/home/mrainey/pctl_data/"; }'
+# nix-build -E 'with (import <nixpkgs> {}); callPackage ./pbbs-sptl/script/benchmark.nix { pathToInputData="/home/mrainey/pctl_data/"; }'
 
 # Later:
 #  - use ipfs over http
@@ -53,10 +53,10 @@ stdenv.mkDerivation rec {
 
   installPhase =
     let dataFolderInit =
-      if preExistingDataFolder == "" then
+      if pathToInputData == "" then
         "mkdir -p bench/_data/"
       else
-        "ln -s ${preExistingDataFolder} bench/_data";
+        "ln -s ${pathToInputData} bench/_data";
     in
     ''
       mkdir -p $out/bin
