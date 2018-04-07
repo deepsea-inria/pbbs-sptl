@@ -49,8 +49,7 @@ stdenv.mkDerivation rec {
   src = ./.;
 
   buildInputs = [
-    cmdline pbench chunkedseq sptl
-    pbbs-include pbbs-sptl
+    cmdline pbench chunkedseq sptl pbbs-include pbbs-sptl
   ];
 
   installPhase =
@@ -60,10 +59,8 @@ stdenv.mkDerivation rec {
       else
         "ln -s ${pathToInputData} bench/_data";
     in
-    ''
-      mkdir -p $out/bin
-      cat >> $out/bin/install-script <<__EOT__
-      #!/bin/bash
+    let installScript = pkgs.writeScript "install-script" ''
+      #!/usr/bin/env bash
       cp -r --no-preserve=mode ${pbbs-sptl}/bench/ bench/
       ${dataFolderInit}
       mkdir -p pbench/
@@ -71,7 +68,11 @@ stdenv.mkDerivation rec {
       cp -r --no-preserve=mode ${pbench}/xlib/ pbench/
       cp -r --no-preserve=mode ${pbench}/tools/ pbench/
       cp --no-preserve=mode ${pbench}/Makefile_common ${pbench}/timeout.c pbench/
-      __EOT__
+    '';
+    in
+    ''
+      mkdir -p $out/bin
+      cp ${installScript} $out/bin/install-script
       chmod u+x $out/bin/install-script
       ln -s ${pbench}/bin/prun $out/bin/prun
       ln -s ${pbench}/bin/pplot $out/bin/pplot
