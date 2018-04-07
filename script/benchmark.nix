@@ -1,6 +1,5 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
-  fetchurl,
   preExistingDataFolder ? "",
   buildDocs ? false
 }:
@@ -12,37 +11,26 @@
 
 let
 
-  gperftools = pkgs.gperftools;
+  callPackage = pkgs.lib.callPackageWith (pkgs // self);
 
-  hwloc = pkgs.hwloc;
+  self = {
 
-  cilk-plus-rts-with-stats = import ../../cilk-plus-rts-with-stats/script/default.nix { inherit pkgs; inherit fetchurl; };
+    cilk-plus-rts-with-stats = callPackage ../../cilk-plus-rts-with-stats/script/default.nix { };
 
-  cmdline = import ../../cmdline/script/default.nix { inherit pkgs; inherit fetchurl; };
+    cmdline = callPackage ../../cmdline/script/default.nix { };
 
-  pbench = import ../../pbench/script/default.nix { inherit pkgs; inherit fetchurl; };
+    pbench = callPackage ../../pbench/script/default.nix { };
 
-  chunkedseq = import ../../chunkedseq/script/default.nix { inherit pkgs; inherit fetchurl; };
+    chunkedseq = callPackage ../../chunkedseq/script/default.nix { };
 
-  sptl = import ../../sptl/script/default.nix { inherit pkgs;
-                                                inherit fetchurl;
-                                                chunkedseq = chunkedseq; };
+    sptl = callPackage ../../sptl/script/default.nix { };
 
-  pbbs-include = import ../../pbbs-include/default.nix { inherit pkgs; inherit fetchurl; };
+    pbbs-include = callPackage ../../pbbs-include/default.nix { };
 
-  pbbs-sptl = import ./default.nix { inherit pkgs;
-                                     inherit fetchurl;
-                                     inherit pbench;
-                                     inherit sptl;
-                                     inherit pbbs-include;
-                                     inherit cmdline;
-                                     inherit chunkedseq;
-                                     inherit cilk-plus-rts-with-stats;
-                                     inherit gperftools;
-                                     inherit hwloc;
-                                     useHwloc = true;
-                                     };
+    pbbs-sptl = callPackage ./default.nix { useHwloc = true; };
 
+  };
+  
 in
 
 stdenv.mkDerivation rec {
@@ -52,8 +40,8 @@ stdenv.mkDerivation rec {
   src = ./.;
 
   buildInputs = [
-    cmdline pbench chunkedseq sptl
-    pbbs-include pbbs-sptl
+    self.cmdline self.pbench self.chunkedseq self.sptl
+    self.pbbs-include self.pbbs-sptl
   ];
 
   installPhase =
@@ -67,17 +55,17 @@ stdenv.mkDerivation rec {
       mkdir -p $out/bin
       cat >> $out/bin/install-script <<__EOT__
       #!/bin/bash
-      cp -r --no-preserve=mode ${pbbs-sptl}/bench/ bench/
+      cp -r --no-preserve=mode ${self.pbbs-sptl}/bench/ bench/
       ${dataFolderInit}
       mkdir -p pbench/
-      cp -r --no-preserve=mode ${pbench}/lib/ pbench/
-      cp -r --no-preserve=mode ${pbench}/xlib/ pbench/
-      cp -r --no-preserve=mode ${pbench}/tools/ pbench/
-      cp --no-preserve=mode ${pbench}/Makefile_common ${pbench}/timeout.c pbench/
+      cp -r --no-preserve=mode ${self.pbench}/lib/ pbench/
+      cp -r --no-preserve=mode ${self.pbench}/xlib/ pbench/
+      cp -r --no-preserve=mode ${self.pbench}/tools/ pbench/
+      cp --no-preserve=mode ${self.pbench}/Makefile_common ${self.pbench}/timeout.c pbench/
       __EOT__
       chmod u+x $out/bin/install-script
-      ln -s ${pbench}/bin/prun $out/bin/prun
-      ln -s ${pbench}/bin/pplot $out/bin/pplot
+      ln -s ${self.pbench}/bin/prun $out/bin/prun
+      ln -s ${self.pbench}/bin/pplot $out/bin/pplot
     '';
 
 }
