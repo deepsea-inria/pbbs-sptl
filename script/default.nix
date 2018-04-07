@@ -39,6 +39,11 @@ stdenv.mkDerivation rec {
         # nothing to build
       '';
     in
+    ''
+    ${docs}
+    '';
+
+  installPhase =
     let hwlocConfig =
       if useHwloc then ''
         USE_HWLOC=1
@@ -47,28 +52,24 @@ stdenv.mkDerivation rec {
         MY_HWLOC_LIBS=-L ${hwloc.lib}/lib/ -lhwloc
       '' else "";
     in
-    ''
-    cat >> settings.sh <<__EOT__
-    PBENCH_PATH=../pbench/
-    CMDLINE_PATH=${cmdline}/include/
-    CHUNKEDSEQ_PATH=${chunkedseq}/include/
-    SPTL_PATH=${sptl}/include/
-    PBBS_INCLUDE_PATH=${pbbs-include}/include/
-    PBBS_SPTL_PATH=$out/include/
-    USE_32_BIT_WORD_SIZE=1
-    USE_CILK=1
-    CUSTOM_MALLOC_PREFIX=-ltcmalloc -L${gperftools}/lib
-    CILK_EXTRAS_PREFIX=-L ${cilk-plus-rts-with-stats}/lib -I  ${cilk-plus-rts-with-stats}/include -ldl -DCILK_RUNTIME_WITH_STATS
-    __EOT__
-    cat >> settings.sh <<__EOT__
-    ${hwlocConfig}
-    __EOT__
-    ${docs}
+    let settingsScript = pkgs.writeText "settings.sh" ''
+      PBENCH_PATH=../pbench/
+      CMDLINE_PATH=${cmdline}/include/
+      CHUNKEDSEQ_PATH=${chunkedseq}/include/
+      SPTL_PATH=${sptl}/include/
+      PBBS_INCLUDE_PATH=${pbbs-include}/include/
+      PBBS_SPTL_PATH=$out/include/
+      USE_32_BIT_WORD_SIZE=1
+      USE_CILK=1
+      CUSTOM_MALLOC_PREFIX=-ltcmalloc -L${gperftools}/lib
+      CILK_EXTRAS_PREFIX=-L ${cilk-plus-rts-with-stats}/lib -I  ${cilk-plus-rts-with-stats}/include -ldl -DCILK_RUNTIME_WITH_STATS
+      ${hwlocConfig}    
     '';
-
-  installPhase = ''
+    in
+    ''
     mkdir -p $out/bench/
-    cp settings.sh bench/Makefile bench/bench.ml bench/*.cpp bench/*.hpp $out/bench/
+    cp ${settingsScript} $out/bench/settings.sh
+    cp bench/Makefile bench/bench.ml bench/*.cpp bench/*.hpp $out/bench/
     mkdir -p $out/include/
     cp include/*.hpp $out/include/
     mkdir -p $out/doc
