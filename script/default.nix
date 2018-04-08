@@ -95,6 +95,10 @@ stdenv.mkDerivation rec {
         --prefix LD_LIBRARY_PATH ":" ${libunwind}/lib
       '' else "";
     in
+    let hw = if useHwloc then ''
+        --prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib
+      '' else "";
+    in
     ''
     cp bench/Makefile bench/bench.pbench bench/timeout.out bench/*.cpp bench/*.hpp $out/bench/
     wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
@@ -102,7 +106,9 @@ stdenv.mkDerivation rec {
        --prefix PATH ":" ${gcc}/bin \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
-       ${lu}
+       --prefix LD_LIBRARY_PATH ":" ${gperftools}/lib \
+       ${lu} \
+       ${hw}
     mkdir -p $out/include/
     cp include/*.hpp $out/include/
     mkdir -p $out/doc
