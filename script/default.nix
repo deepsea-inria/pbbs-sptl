@@ -58,7 +58,6 @@ stdenv.mkDerivation rec {
       CHUNKEDSEQ_PATH=${chunkedseq}/include/
       SPTL_PATH=${sptl}/include/
       PBBS_INCLUDE_PATH=${pbbs-include}/include/
-      PBBS_SPTL_PATH=$out/include/
       USE_32_BIT_WORD_SIZE=1
       USE_CILK=1
       CUSTOM_MALLOC_PREFIX=-ltcmalloc -L${gperftools}/lib
@@ -68,7 +67,10 @@ stdenv.mkDerivation rec {
     in
     ''
     mkdir -p $out/bench/
-    cp ${settingsScript} $out/bench/settings.sh
+    cat >> $out/bench/settings.sh <<__EOT__
+    PBBS_SPTL_PATH=$out/include/
+    __EOT__
+    cat ${settingsScript} >> $out/bench/settings.sh
     cp bench/Makefile bench/bench.ml bench/*.cpp bench/*.hpp $out/bench/
     mkdir -p $out/include/
     cp include/*.hpp $out/include/
