@@ -26,8 +26,8 @@ let pkgs = import <nixpkgs> {}; in
   chunkedseqSrc = pkgs.fetchFromGitHub {
     owner  = "deepsea-inria";
     repo   = "chunkedseq";
-    rev    = "9a27b69a742fa6d207a4b4fcf5d5f7bee5b677b9";
-    sha256 = "0crds1khg8l5hgprxnpr1zw4f1c0y8f2g704mnv9bngkmc1lizzh";
+    rev    = "d2925cf385fb43aff7eeb9c08cce88d321e5e02e";
+    sha256 = "09qyv48vb2ispl3zrxmvbziwf6vzjh3la7vl115qgmkq67cxv78b";
   };
 
   sptlSrc = pkgs.fetchFromGitHub {
