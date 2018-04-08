@@ -41,6 +41,7 @@ stdenv.mkDerivation rec {
       '' else "";
     in
     let settingsScript = pkgs.writeText "settings.sh" ''
+      PBENCH_PATH=${pbench}
       CMDLINE_PATH=${cmdline}/include/
       CHUNKEDSEQ_PATH=${chunkedseq}/include/
       SPTL_PATH=${sptl}/include/
