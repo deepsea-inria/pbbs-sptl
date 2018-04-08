@@ -26,22 +26,11 @@ stdenv.mkDerivation rec {
       ] else
         [];
     in
-    [ pbench sptl pbbs-include cmdline chunkedseq ] ++ docs;
-        
-  buildPhase =
-    let docs =
-      if buildDocs then ''
-        make -C doc pbbs-sptl.pdf pbbs-sptl.html
-      ''
-      else ''
-        # nothing to build
-      '';
-    in
-    ''
-    ${docs}
-    '';
+    [ pbench sptl pbbs-include cmdline chunkedseq
+      pkgs.makeWrapper pkgs.R pkgs.texlive.combined.scheme-small
+    ] ++ docs;
 
-  installPhase =
+  configurePhase =
     let hwlocConfig =
       if useHwloc then ''
         USE_HWLOC=1
@@ -51,7 +40,7 @@ stdenv.mkDerivation rec {
       '' else "";
     in
     let settingsScript = pkgs.writeText "settings.sh" ''
-      PBENCH_PATH=../pbench/
+      PBENCH_PATH=${pbench}
       CMDLINE_PATH=${cmdline}/include/
       CHUNKEDSEQ_PATH=${chunkedseq}/include/
       SPTL_PATH=${sptl}/include/
@@ -69,7 +58,28 @@ stdenv.mkDerivation rec {
     PBBS_SPTL_PATH=$out/include/
     __EOT__
     cat ${settingsScript} >> $out/bench/settings.sh
-    cp bench/Makefile bench/bench.ml bench/*.cpp bench/*.hpp $out/bench/
+    cp $out/bench/settings.sh bench
+    '';
+
+  buildPhase =
+    let docs =
+      if buildDocs then ''
+        make -C doc pbbs-sptl.pdf pbbs-sptl.html
+      ''
+      else ''
+        # nothing to build
+      '';
+    in
+    ''
+    ${docs}
+    (cd bench && make bench.pbench)
+    '';  
+
+  installPhase =
+    ''
+    cp bench/Makefile bench/bench.pbench bench/*.cpp bench/*.hpp $out/bench/
+    wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
+       --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin
     mkdir -p $out/include/
     cp include/*.hpp $out/include/
     mkdir -p $out/doc
