@@ -10,6 +10,9 @@
   gperftools ? pkgs.gperftools,
   useHwloc ? false,
   hwloc ? pkgs.hwloc,
+  libunwind ? pkgs.libunwind,
+  useLibunwind ? false,
+  gcc ? pkgs.gcc,
   buildDocs ? false
 }:
 
@@ -21,15 +24,19 @@ stdenv.mkDerivation rec {
   buildInputs =
     let docs =
       if buildDocs then [
-        pkgs.pandoc
-        pkgs.texlive.combined.scheme-full
+        pkgs.pandoc pkgs.texlive.combined.scheme-full
       ] else
         [];
     in
+    let lu =
+      if useLibunwind then
+        [ libunwind ]
+      else [];
+    in
     [ pbench sptl pbbs-include cmdline chunkedseq
       pkgs.makeWrapper pkgs.R pkgs.texlive.combined.scheme-small
-      pkgs.ocaml
-    ] ++ docs;
+      pkgs.ocaml gcc
+    ] ++ docs ++ lu;
 
   configurePhase =
     let hwlocConfig =
@@ -84,10 +91,18 @@ stdenv.mkDerivation rec {
     '';  
 
   installPhase =
+    let lu = if useLibunwind then ''
+        --prefix LD_LIBRARY_PATH ":" ${libunwind}/lib
+      '' else "";
+    in
     ''
     cp bench/Makefile bench/bench.pbench bench/timeout.out bench/*.cpp bench/*.hpp $out/bench/
     wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
-       --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin
+       --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin \
+       --prefix PATH ":" ${gcc}/bin \
+       --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
+       --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
+       ${lu}
     mkdir -p $out/include/
     cp include/*.hpp $out/include/
     mkdir -p $out/doc
