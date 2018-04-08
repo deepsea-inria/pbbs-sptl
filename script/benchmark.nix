@@ -12,8 +12,6 @@
 
 # Later:
 #  - use ipfs over http
-#  - get hwloc ocaml R and texlive to be runtime dependencies
-#  - fix the build docs
 
 let
 
