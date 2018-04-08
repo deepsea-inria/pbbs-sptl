@@ -76,7 +76,6 @@ stdenv.mkDerivation rec {
       cp -r --no-preserve=mode ${pbench}/xlib/ pbench/
       cp -r --no-preserve=mode ${pbench}/tools/ pbench/
       cp --no-preserve=mode ${pbench}/Makefile_common ${pbench}/timeout.c pbench/
-      make -C bench bench.pbench
     '';
     in
     ''
