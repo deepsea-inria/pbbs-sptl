@@ -28,6 +28,7 @@ stdenv.mkDerivation rec {
     in
     [ pbench sptl pbbs-include cmdline chunkedseq
       pkgs.makeWrapper pkgs.R pkgs.texlive.combined.scheme-small
+      pkgs.ocaml
     ] ++ docs;
 
   configurePhase =
