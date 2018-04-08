@@ -41,7 +41,6 @@ stdenv.mkDerivation rec {
       '' else "";
     in
     let settingsScript = pkgs.writeText "settings.sh" ''
-      PBENCH_PATH=${pbench}
       CMDLINE_PATH=${cmdline}/include/
       CHUNKEDSEQ_PATH=${chunkedseq}/include/
       SPTL_PATH=${sptl}/include/
@@ -60,6 +59,12 @@ stdenv.mkDerivation rec {
     __EOT__
     cat ${settingsScript} >> $out/bench/settings.sh
     cp $out/bench/settings.sh bench
+    mkdir -p bench-script
+    cp -r --no-preserve=mode ${pbench} bench-script/pbench
+    cp bench/bench.ml bench/Makefile bench-script
+    cat >> bench-script/settings.sh <<__EOT__
+    PBENCH_PATH=./pbench/
+    __EOT__
     '';
 
   buildPhase =
@@ -73,7 +78,8 @@ stdenv.mkDerivation rec {
     in
     ''
     ${docs}
-    (cd bench && make bench.pbench)
+    make -C bench-script bench.pbench
+    cp bench-script/bench.pbench bench/bench.pbench
     '';  
 
   installPhase =
