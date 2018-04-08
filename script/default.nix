@@ -80,12 +80,12 @@ stdenv.mkDerivation rec {
     ''
     ${docs}
     make -C bench-script bench.pbench
-    cp bench-script/bench.pbench bench/bench.pbench
+    cp bench-script/bench.pbench bench-script/timeout.out bench/
     '';  
 
   installPhase =
     ''
-    cp bench/Makefile bench/bench.pbench bench/*.cpp bench/*.hpp $out/bench/
+    cp bench/Makefile bench/bench.pbench bench/timeout.out bench/*.cpp bench/*.hpp $out/bench/
     wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
        --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin
     mkdir -p $out/include/
