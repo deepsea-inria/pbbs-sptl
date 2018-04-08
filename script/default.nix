@@ -13,8 +13,6 @@
   buildDocs ? false
 }:
 
-# Later: make gperftools and hwloc options a la mkOption
-
 stdenv.mkDerivation rec {
   name = "pbbs-sptl";
 
