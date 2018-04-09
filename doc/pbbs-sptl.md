@@ -29,17 +29,28 @@ the input graphs we use are huge.
 How to build the benchmarks
 ---------------------------
 
-The first step is to install the [nix](http://nixos.org) build tool on
-your test machine. 
+The first step is to install the [nix](http://nixos.org) package
+manager on your test machine. The package manager download page is
+linked [here](https://nixos.org/nix/download.html).
 
-After you have nix, create a new folder and change to it. To get the
-build script, download the [pbbs-sptl
-repository](https://github.com/deepsea-inria/pbbs-sptl.git). Then, run
-the following command.
+After you have nix, create a new folder, say, `experiment`, and change
+to it. To get the build script, download the [pbbs-sptl
+repository](https://github.com/deepsea-inria/pbbs-sptl.git).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$ git clone https://github.com/deepsea-inria/pbbs-sptl.git
+$ mkdir experiment
+$ cp pbbs-sptl/script/benchmark.nix \
+     pbbs-sptl/script/default-sources.nix \
+     experiment
+$ cd experiment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Then, run the following command.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ nix-build -E 'with (import <nixpkgs> {}); \
-    callPackage ./pbbs-sptl/script/benchmark.nix { }'
+    callPackage ./benchmark.nix { }'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Alternatively, if you already have a copy of the input data, then run
@@ -48,7 +59,7 @@ folder.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ nix-build -E 'with (import <nixpkgs> {}); \
-    callPackage ./pbbs-sptl/script/benchmark.nix \
+    callPackage ./benchmark.nix \
       { pathToInputData="<path to the input data>"; }'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -62,16 +73,14 @@ experiments.
 $ ./result/bin/install-script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We can now change to the scratch folder and build the benchmarking
-tool.
+We can now change to the scratch folder.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ cd bench
-$ make bench.pbench
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The script supports running one benchmark at a time. Let's start by
-running the convexhull benchmark. 
+The benchmarking script, namely `bench.pbench`, supports running one
+benchmark at a time. Let's start by running the convexhull benchmark.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 $ bench.pbench compare -benchmark convexhull
