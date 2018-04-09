@@ -927,5 +927,6 @@ let _ =
     "compare", ExpCompare.all;
   ]
   in
+  system "mkdir -p _results" false;
   Pbench.execute_from_only_skip arg_actions [] bindings;
   ()
