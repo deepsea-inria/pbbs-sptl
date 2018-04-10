@@ -12,9 +12,6 @@ Overview
 - The current work is reported in a preprint that is being prepared
   for submission to a conference [@ORACLE_GUIDED_18].
 
-Source code for the prototype
-=============================
-
 How to repeat the experimental evaluation
 =========================================
 
@@ -29,181 +26,65 @@ have about 300GB of free hard-drive space and your machine at least
 128GB or RAM. These space requirements are so large because some of
 the input graphs we use are huge.
 
-The following packages should be installed on your test machine.
-
------------------------------------------------------------------------------------
-Package    Version         Details
---------   ----------      --------------------------------------------------------
-gcc         >= 6.1         Recent gcc is required because pdfs 
-                           makes heavy use of features of C++1x,
-                           such as lambda expressions and
-                           higher-order templates.
-                           ([Home page](https://gcc.gnu.org/))
-
-ocaml        >= 4.02       Ocaml is required to build the
-                           benchmarking script.
-                           ([Home page](http://www.ocaml.org/))
-
-R            >= 2.4.1      The R tools is used by our scripts to
-                           generate plots.
-                           ([Home page](http://www.r-project.org/))
-                                               
-tcmalloc     recent        *Optional dependency* (See instructions below).
-                           This package is used to provide a scalable
-                           heap allocator 
-                           ([Home page](http://goog-perftools.sourceforge.net/doc/tcmalloc.html))
-
-hwloc        recent        *Optional dependency* (See instructions 
-                           below). This package is used to force
-                           interleaved NUMA allocation; as
-                           such this package is optional and only
-                           really relevant for NUMA machines.
-                           ([Home page](http://www.open-mpi.org/projects/hwloc/))
-
-ipfs         recent        We are going to use this software to
-                           download data sets for our experiments.
-                           ([Home page](https://ipfs.io/))
------------------------------------------------------------------------------------
-
-Table: Software dependencies for the benchmarks.
-
-Getting the input data
-----------------------
-
-We use IPFS as the tool to disseminate our input data files. After
-installing IPFS, we need to initialize the local IPFS configuration.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ ipfs init
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::::: {#warning-disk-space .warning}
-
-**Warning:** disk space. The default behavior of IPFS is to keep a
-cache of all downloaded files in the folder `~/.ipfs/`. Because the
-graph data is several gigabytes, the cache folder should have at least
-twice this much free space. To select a different cache folder for
-IPFS, before issuing the command ipfs init, set the environment
-variable `$IPFS_PATH` to point to the desired path.
-
-:::::
-
-In order to use IPFS to download files, the IPFS daemon needs to be
-running. You can start the IPFS daemon in the following way, or you
-can start it in the background, like a system service. Make sure that
-this daemon continues to run in the background until after all of the
-input data files you want are downloaded on your test machine.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ ipfs daemon
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 How to build the benchmarks
 ---------------------------
 
-Our benchmarking script is configured to automatically download the
-input data as needed. We can get started by changing to the
-benchmarking directory and building the script.
+The first step is to install the [nix](http://nixos.org) package
+manager on your test machine. The package manager download page is
+linked [here](https://nixos.org/nix/download.html).
+
+After you have nix, create a new folder, say, `experiment`, and change
+to it. To get the build script, download the [pbbs-sptl
+repository](https://github.com/deepsea-inria/pbbs-sptl.git).
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ cd pbbs-sptl/bench
-$ make bench.pbench
+$ git clone https://github.com/deepsea-inria/pbbs-sptl.git
+$ mkdir experiment
+$ cp pbbs-sptl/script/benchmark.nix \
+     pbbs-sptl/script/default-sources.nix \
+     experiment
+$ cd experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::::: {#optional-heap-allocator .optional}
-
-**Optional:** Using a custom heap allocator
-
-Because it often delivers best results, we recommend running all of
-the experiments using the Google's custom heap allocator, namely
-[tcmalloc](http://goog-perftools.sourceforge.net/doc/tcmalloc.html). In
-general, you can build with any drop-in replacement for
-`malloc`/`free` by configuring the benchmark settings appropriately.
-
-To use tcmalloc, for example, we need to insert into the file
-`pbbs-sptl/bench/settings.sh` a line like the following.
+Then, run the following command.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CUSTOM_MALLOC_PREFIX=-ltcmalloc
+$ nix-build -E 'with (import <nixpkgs> {}); \
+    callPackage ./benchmark.nix { }'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is fine to add to the "custom, malloc prefix" additional arguments,
-such as the linker path: `-L $GPERFTOOLS_HOME/lib/`.
-
-:::::
-
-::::: {#optional-hwloc .optional}
-
-**Optional:** Dealing with NUMA
-
-If your test machine is a NUMA machine, then we recommend that, for
-best performance on benchmarks, you configure the benchmarks to use
-the round-robin page-allocation for NUMA. The existing benchmarking
-framework automatically handles this configuration, if the benchmarks
-are linked with a library called `hwloc`. As such, to run experiments
-on a NUMA machine, we recommend that you insert into the file
-`pbbs-sptl/bench/settings.sh` the following line.
+Alternatively, if you already have a copy of the input data, then run
+the following command instead, pointing `pathToInputData` to the
+folder.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-USE_HWLOC=1
+$ nix-build -E 'with (import <nixpkgs> {}); \
+    callPackage ./benchmark.nix \
+      { pathToInputData="<path to the input data>"; }'
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Of course, `hwloc` needs to be installed on the test system for the
-benchmarks to build with this configuration. Fortunately, it is easy
-to check whether `hwloc` is installed: just run the following command,
-and if successful, you should see output somewhat like below.
+If the command succeeds, there will be a symlink named `result` in the
+current directory.
+
+The next step is to create a scratch space in which to run the
+experiments.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ pkg-config --cflags hwloc
--I/nix/store/lwjvcas5sxs4r3m3r780zkjc4h8a39pb-hwloc-1.11.8-dev/include
+$ ./result/bin/install-script
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:::::
-
-The script supports running one benchmark at a time. Let's start by
-running the convexhull benchmark. Let `$P` denote the number of
-processors/cores that you wish to use in the experiments. This number
-should be at least two and should be no more than the number of cores
-in the system.
+We can now change to the scratch folder.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ bench.pbench compare -benchmark convexhull -proc 1,$P
+$ cd bench
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::::: {#note-hyperthreading .note}
-
-*Note:* If your machine has hyperthreading enabled, then we recommend
-running the experiments without and with hyperthreading. To run with
-hyperthreading, just set `$P` to be the total number of cores or
-hyperthreads in the system as desired. For example, if the machine has
-eight cores, with each core having two hyperthreads, then to test
-without hyperthreading, set `$P` to be `8`, and to test with
-hyperthreading, set `$P$` to be `16`.
-
-:::::
-
-For a variety of reasons, one of the steps involved in the
-benchmarking can fail. A likely cause is the failure to obtain the
-required input data. The reason is that these files are large, and as
-such, we are hosting the files ourselves, using a peer-to-peer
-file-transfer protocol called [IPFS](http://ipfs.io). 
-
-::::: {#note-ipfs-ping .note}
-
-*Note:* If you notice that the benchmarking script gets stuck for a
-long time while issuing the `ipfs get ...` commands, we recommend
-that, in a separate window, you ping one of the machines that we are
-using to host our input data.
+The benchmarking script, namely `bench.pbench`, supports running one
+benchmark at a time. Let's start by running the convexhull benchmark.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ ipfs ping QmRBzXmjGFtDAy57Rgve5NbNDvSUJYeSjoGQkdtfBvnbWX
+$ bench.pbench compare -benchmark convexhull
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Please email us if you have to wait for a long time or are having
-trouble getting the input data. If IPFS becomes problematic, we are
-happy to find other means to distribute the input data.
-
-:::::
 
 How to run the experiments
 --------------------------
@@ -218,17 +99,8 @@ It is possible to collect additional samples by running the following
 command.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ bench.pbench compare -benchmark convexhull -proc $P -runs 29 -mode append
+$ bench.pbench compare -benchmark convexhull -runs 29 -mode append
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::::: {#note-samples .note}
-
-*Note:* In our example, we collect additional samples for runs
-involving two or more processors. The reason is that the single-core
-runs usually exhibit relatively little noise and, as such, we prefer
-to save time running experiments by performing fewer single-core runs.
-
-:::::
 
 So far, we have run only the `convexhull` benchmarks. All the other
 benchmarks featured in the paper are also available to run.
@@ -247,13 +119,13 @@ benchmarks featured in the paper are also available to run.
 As such, we can run `mst` and `spanning` as follows.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ bench.pbench compare -benchmark mst,spanning -proc 1,$P
+$ bench.pbench compare -benchmark mst,spanning
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Or, alternatively, we can just run all of the benchmarks.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-$ bench.pbench compare -proc 1,$P
+$ bench.pbench compare
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 How to interpret the results

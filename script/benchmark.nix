@@ -1,47 +1,45 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
-  fetchurl,
-  preExistingDataFolder ? "",
+  sources ? import ./default-sources.nix,
+  pathToInputData ? "",
   buildDocs ? false
 }:
 
 # To call,
-#   nix-shell -p 'with (import <nixpkgs> {}); callPackage ~/Work/pbbs-sptl/script/benchmark.nix { preExistingDataFolder="/run/media/rainey/157ddd80-bedc-4915-ba50-649d191a758e/oracle-guided-data/"; }' --pure -p hwloc ipfs ocaml R texlive.combined.scheme-full
+#   nix-shell -p 'with (import <nixpkgs> {}); callPackage ~/Work/pbbs-sptl/script/benchmark.nix { pathToInputData="/run/media/rainey/157ddd80-bedc-4915-ba50-649d191a758e/oracle-guided-data/"; }' --pure -p hwloc ipfs ocaml R texlive.combined.scheme-full
+#
+# nix-build -E 'with (import <nixpkgs> {}); callPackage ./pbbs-sptl/script/benchmark.nix { pathToInputData="/home/mrainey/pctl_data/"; }'
+
+# Later:
+#  - use ipfs over http
 
 let
 
-  gperftools = pkgs.gperftools;
+  callPackage = pkgs.lib.callPackageWith (pkgs // sources // self);
 
-  hwloc = pkgs.hwloc;
+  self = {
 
-  cilk-plus-rts-with-stats = import ../../cilk-plus-rts-with-stats/script/default.nix { inherit pkgs; inherit fetchurl; };
+    hwloc = pkgs.hwloc;
 
-  cmdline = import ../../cmdline/script/default.nix { inherit pkgs; inherit fetchurl; };
+    cilk-plus-rts-with-stats = callPackage "${sources.cilkRtsSrc}/script/default.nix" { };
 
-  pbench = import ../../pbench/script/default.nix { inherit pkgs; inherit fetchurl; };
+    cmdline = callPackage "${sources.cmdlineSrc}/script/default.nix" { };
 
-  chunkedseq = import ../../chunkedseq/script/default.nix { inherit pkgs; inherit fetchurl; };
+    pbench = callPackage "${sources.pbenchSrc}/script/default.nix" { };
 
-  sptl = import ../../sptl/script/default.nix { inherit pkgs;
-                                                inherit fetchurl;
-                                                chunkedseq = chunkedseq; };
+    chunkedseq = callPackage "${sources.chunkedseqSrc}/script/default.nix" { };
 
-  pbbs-include = import ../../pbbs-include/default.nix { inherit pkgs; inherit fetchurl; };
+    sptl = callPackage "${sources.sptlSrc}/script/default.nix" { };
 
-  pbbs-sptl = import ./default.nix { inherit pkgs;
-                                     inherit fetchurl;
-                                     inherit pbench;
-                                     inherit sptl;
-                                     inherit pbbs-include;
-                                     inherit cmdline;
-                                     inherit chunkedseq;
-                                     inherit cilk-plus-rts-with-stats;
-                                     inherit gperftools;
-                                     inherit hwloc;
-                                     useHwloc = true;
-                                     };
+    pbbs-include = callPackage "${sources.pbbsIncludeSrc}/default.nix" { };
+
+    pbbs-sptl = callPackage "${sources.pbbsSptlSrc}/script/default.nix" { useHwloc = true; };
+
+  };
 
 in
+
+with self;
 
 stdenv.mkDerivation rec {
 
@@ -50,29 +48,40 @@ stdenv.mkDerivation rec {
   src = ./.;
 
   buildInputs = [
-    cmdline pbench chunkedseq sptl
-    pbbs-include pbbs-sptl
+    cmdline pbench chunkedseq sptl pbbs-include pbbs-sptl
   ];
 
   installPhase =
     let dataFolderInit =
-      if preExistingDataFolder == "" then
+      if pathToInputData == "" then
         "mkdir -p bench/_data/"
       else
-        "ln -s ${preExistingDataFolder} bench/_data";
+        "ln -s ${pathToInputData} bench/_data";
     in
-    ''
-      mkdir -p $out/bin
-      cat >> $out/bin/install-script <<__EOT__
-      #!/bin/bash
+    let getNbCoresScript = pkgs.writeScript "get-nb-cores" ''
+      #!/usr/bin/env bash
+      nb_cores=$( ${hwloc}/bin/hwloc-ls --only core | wc -l )
+      echo $nb_cores > nb_cores
+    '';
+    in
+    let installScript = pkgs.writeScript "install-script" ''
+      #!/usr/bin/env bash
       cp -r --no-preserve=mode ${pbbs-sptl}/bench/ bench/
+      cp ${getNbCoresScript} bench/get-nb-cores
       ${dataFolderInit}
       mkdir -p pbench/
       cp -r --no-preserve=mode ${pbench}/lib/ pbench/
       cp -r --no-preserve=mode ${pbench}/xlib/ pbench/
       cp -r --no-preserve=mode ${pbench}/tools/ pbench/
       cp --no-preserve=mode ${pbench}/Makefile_common ${pbench}/timeout.c pbench/
-      __EOT__
+      cp ${pbbs-sptl}/bench/bench.pbench ${pbbs-sptl}/bench/timeout.out bench/
+      chmod u+x bench/bench.pbench bench/timeout.out
+    '';
+    in
+    ''
+      mkdir -p $out/bin
+      cp ${installScript} $out/bin/install-script
+      cp ${getNbCoresScript} $out/bin/get-nb-cores
       chmod u+x $out/bin/install-script
       ln -s ${pbench}/bin/prun $out/bin/prun
       ln -s ${pbench}/bin/pplot $out/bin/pplot

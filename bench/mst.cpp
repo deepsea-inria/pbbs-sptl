@@ -12,30 +12,6 @@
 template <class Item>
 using parray = sptl::parray<Item>;
 
-namespace sptl {
-namespace graph {
-  
-template <class intT>
-wghEdgeArray<intT> to_weighted_edge_array(graph<intT>& G) {
-  int n = G.n;
-  int m = G.m;
-  vertex<intT>* v = G.V;
-  wghEdge<intT>* e = newA(wghEdge<intT>, m);
-
-  int k = 0;
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < v[i].degree; j++) {
-      if (i < v[i].Neighbors[j]) {
-        e[k++] = wghEdge<intT>(i, v[i].Neighbors[j], hashi(k));
-      }
-    }
-  }
-  return wghEdgeArray<int>(e, n, m);
-}
-
-} // end namespace
-} // end namespace
-
 void benchmark(sptl::bench::measured_type measured) {
   std::string infile = deepsea::cmdline::parse_or_default_string("infile", "");
   if (infile == "") {

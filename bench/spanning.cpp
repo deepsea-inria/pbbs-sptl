@@ -12,30 +12,6 @@
 template <class Item>
 using parray = sptl::parray<Item>;
 
-namespace sptl {
-namespace graph {
-  
-template <class intT>
-edgeArray<intT> to_edge_array(graph<intT>& G) {
-  int num_rows = G.n;
-  int non_zeros = G.m;
-  vertex<intT>* v = G.V;
-  edge<intT>* e = newA(edge<intT>, non_zeros);
-
-  int k = 0;
-  for (int i = 0; i < num_rows; i++) {
-    for (int j = 0; j < v[i].degree; j++) {
-      if (i < v[i].Neighbors[j]) {
-        e[k++] = edge<int>(i, v[i].Neighbors[j]);
-      }
-    }
-  }
-  return edgeArray<intT>(e, num_rows, num_rows, non_zeros);
-}
-
-} // end namespace
-} // end namespace
-
 void benchmark(sptl::bench::measured_type measured) {
   std::string infile = deepsea::cmdline::parse_or_default_string("infile", "");
   if (infile == "") {
