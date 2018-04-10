@@ -58,8 +58,16 @@ struct MISstep {
     }
     return 1;
   }
+
+  intT reserve_complexity(intT i) {
+    return (intT) G[i].degree;
+  }
   
   bool commit(intT i) { return (flags[i] = flag) > 0;}
+
+  intT commit_complexity(intT i) {
+    return (intT) 1;
+  }
 };
 
 parray<char> maximalIndependentSet(graph::graph<int> GS) {
@@ -67,7 +75,7 @@ parray<char> maximalIndependentSet(graph::graph<int> GS) {
   graph::vertex<int>* G = GS.V;
   parray<char> flags(n, (char) 0);
   MISstep mis(flags.begin(), G);
-  speculative_for(mis, 0, n, 20);
+  speculative_for(mis, 0, n, 20, 1, -1, false, false);
   return flags;
 }
   
