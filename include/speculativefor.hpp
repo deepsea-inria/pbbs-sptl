@@ -71,6 +71,7 @@ intT speculative_for(S step, intT s, intT e, int granularity,
   if (hasState) {
     state.resize(maxRoundSize, step);
   }
+  parray<intT> comp(maxRoundSize);
   
   int round = 0;
   intT numberDone = s; // number of iterations done
@@ -87,11 +88,11 @@ intT speculative_for(S step, intT s, intT e, int granularity,
     totalProcessed += size;
     
     if (with_reserve_complexity) {
-      parray<intT> comp(size, [&] (intT i) {
+      parallel_for((intT)0, size, [&] (intT i) {
         if (i >= numberKeep) I[i] = numberDone + i;
-        return state[i].reserve_complexity(I[i]);
+        comp[i] = state[i].reserve_complexity(I[i]);
       });
-      dps::scan(comp.begin(), comp.end(), (intT) 0, [&] (intT x, intT y) { return x + y; }, comp.begin(), forward_inclusive_scan);
+      dps::scan(comp.begin(), comp.begin() + size, (intT) 0, [&] (intT x, intT y) { return x + y; }, comp.begin(), forward_inclusive_scan);
 
       auto complexity_fct = [&] (intT lo, intT hi) {
         if (lo == hi) {
@@ -129,14 +130,14 @@ intT speculative_for(S step, intT s, intT e, int granularity,
     }
 
     if (with_commit_complexity) {
-      parray<intT> comp(size, [&] (intT i) {
+      parallel_for((intT)0, size, [&] (intT i) {
         if (keep[i]) {
           return state[i].commit_complexity(I[i]);
         } else {
           return 1;
         }
       });
-      dps::scan(comp.begin(), comp.end(), (intT) 0, [&] (intT x, intT y) { return x + y; }, comp.begin(), forward_inclusive_scan);
+      dps::scan(comp.begin(), comp.begin() + size, (intT) 0, [&] (intT x, intT y) { return x + y; }, comp.begin(), forward_inclusive_scan);
       auto complexity_fct = [&] (intT lo, intT hi) {
         if (lo == hi) {
           return 0;
