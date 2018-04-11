@@ -107,6 +107,7 @@ stdenv.mkDerivation rec {
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
        --prefix LD_LIBRARY_PATH ":" ${gperftools}/lib \
+       --set TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD 100000000000 \
        ${lu} \
        ${hw}
     mkdir -p $out/include/
