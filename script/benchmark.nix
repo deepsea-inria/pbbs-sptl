@@ -85,6 +85,7 @@ stdenv.mkDerivation rec {
       chmod u+x $out/bin/install-script
       ln -s ${pbench}/bin/prun $out/bin/prun
       ln -s ${pbench}/bin/pplot $out/bin/pplot
+      ln -s ${pbench}/bin/timeout.out $out/bin/timeout.out
     '';
 
 }
