@@ -16,6 +16,7 @@ let arg_onlys = XCmd.parse_or_default_list_string "only" []
 let arg_benchmarks = XCmd.parse_or_default_list_string "benchmark" ["all"]
 let arg_proc =
   let hostname = Unix.gethostname () in
+  let cmdline_proc = XCmd.parse_or_default_list_int "proc" [] in
   let default =
     if hostname = "teraram" then
       [ 40; ]
@@ -27,6 +28,8 @@ let arg_proc =
       [ 72; ]
     else if hostname = "beast" then
       [ 8; ]
+    else if List.length cmdline_proc > 0 then
+      cmdline_proc
     else
       let _ = system "./get-nb-cores" false in
       let chan = open_in "nb_cores" in
@@ -142,6 +145,67 @@ let string_of_percentage ?(show_plus=true) v =
 let string_of_percentage_change ?(show_plus=true) vold vnew =
   string_of_percentage ~show_plus:show_plus (vnew /. vold -. 1.0)
 
+(*****************************************************************************)
+(** Granularity-settings benchmark *)
+
+module ExpGranularitySettings = struct
+
+let name = "granularity-settings"
+
+let prog = "./spawnbench.sptl"
+
+let rec gen first last incr =
+  if first > last then
+    [last]
+  else
+    first :: (gen (first +. incr) last incr)
+
+let mk_kappas =
+  mk_list float "sptl_kappa" (gen 0.2 50.0 2.0)
+
+let mk_alphas =
+  mk_list float "sptl_alpha" (gen 1.0 3.0 0.4)
+
+let mk_configs =
+  (mk int "sptl_custom_kappa" 1) & mk_kappas & mk_alphas
+
+let make() =
+  build "." [prog] arg_virtual_build
+
+let run() =
+  Mk_runs.(call (par_run_modes @ [
+    Output (file_results name);
+    Timeout 400;
+    Args (
+      mk_prog prog
+    & mk_configs)]))
+
+let check = nothing  (* do something here *)
+
+let spawnbench_formatter =
+ Env.format (Env.(
+   [ ("n", Format_custom (fun n -> sprintf "spawnbench(%s)" n)); ]
+  ))
+
+let plot() =
+  Mk_bar_plot.(call ([
+      Bar_plot_opt Bar_plot.([
+         X_titles_dir Vertical;
+         Y_axis [Axis.Lower (Some 0.)] ]);
+      Formatter spawnbench_formatter;
+      Charts mk_unit;
+      Series mk_unit;
+      X (mk_kappas & mk_alphas);
+      Input (file_results name);
+      Output (file_plots name);
+      Y_label "exectime";
+      Y eval_exectime;
+  ]))
+
+let all () = select make run check plot
+
+end
+  
 (*****************************************************************************)
 (** BFS benchmark *)
 
@@ -923,8 +987,9 @@ end
 let _ =
   let arg_actions = XCmd.get_others() in
   let bindings = [
-    "bfs",     ExpBFS.all;
-    "compare", ExpCompare.all;
+    "granularity-settings",     ExpGranularitySettings.all;
+    "bfs",                      ExpBFS.all;
+    "compare",                  ExpCompare.all;
   ]
   in
   system "mkdir -p _results" false;
