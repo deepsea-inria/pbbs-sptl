@@ -68,6 +68,8 @@ void launch(int argc, char** argv, const Body& body) {
     load_presets_by_host();
     body(f);
   });
+  printf("used_kappa %f\n", kappa);
+  printf("used_alpha %f\n", update_size_ratio);
 }
   
 } // end namespace
