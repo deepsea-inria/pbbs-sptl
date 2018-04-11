@@ -59,9 +59,7 @@ inline void reserveLoc(intT& x, intT i) {utils::writeMin(&x,i);}
 
 template <class S>
 intT speculative_for(S step, intT s, intT e, int granularity,
-                     bool hasState = 1, int maxTries = -1,
-                     bool with_reserve_complexity = false,
-                     bool with_commit_complexity = false) {
+                     bool hasState = 1, int maxTries = -1) {
   if (maxTries < 0) maxTries = 100 + 200 * granularity;
   intT maxRoundSize = (e - s) / granularity + 1;
   parray<intT> I(maxRoundSize);
@@ -86,88 +84,28 @@ intT speculative_for(S step, intT s, intT e, int granularity,
     intT size = std::min(maxRoundSize, e - numberDone);
     totalProcessed += size;
     
-    if (with_reserve_complexity) {
-      parray<intT> comp(size, [&] (intT i) {
+    if (hasState) {
+      parallel_for((intT)0, size, [&] (intT i) {
         if (i >= numberKeep) I[i] = numberDone + i;
-        return state[i].reserve_complexity(I[i]);
+        keep[i] = state[i].reserve(I[i]);
       });
-      dps::scan(comp.begin(), comp.end(), (intT) 0, [&] (intT x, intT y) { return x + y; }, comp.begin(), forward_inclusive_scan);
-
-      auto complexity_fct = [&] (intT lo, intT hi) {
-        if (lo == hi) {
-          return 0;
-        } else if (lo == 0) {
-          return comp[hi - 1];
-        } else {
-          return comp[hi - 1] - comp[lo - 1];
-        }
-      };
-
-      if (hasState) {
-        parallel_for((intT)0, size, complexity_fct, [&] (intT i) {
-          if (i >= numberKeep) I[i] = numberDone + i;
-          keep[i] = state[i].reserve(I[i]);
-        });
-      } else {
-        parallel_for((intT)0, size, complexity_fct, [&] (intT i) {
-          if (i >= numberKeep) I[i] = numberDone + i;
-          keep[i] = step.reserve(I[i]);
-        });
-      }
     } else {
-      if (hasState) {
-        parallel_for((intT)0, size, [&] (intT i) {
-          if (i >= numberKeep) I[i] = numberDone + i;
-          keep[i] = state[i].reserve(I[i]);
-        });
-      } else {
-        parallel_for((intT)0, size, [&] (intT i) {
-          if (i >= numberKeep) I[i] = numberDone + i;
-          keep[i] = step.reserve(I[i]);
-        });
-      }
-    }
-
-    if (with_commit_complexity) {
-      parray<intT> comp(size, [&] (intT i) {
-        if (keep[i]) {
-          return state[i].commit_complexity(I[i]);
-        } else {
-          return 1;
-        }
+      parallel_for((intT)0, size, [&] (intT i) {
+        if (i >= numberKeep) I[i] = numberDone + i;
+        keep[i] = step.reserve(I[i]);
       });
-      dps::scan(comp.begin(), comp.end(), (intT) 0, [&] (intT x, intT y) { return x + y; }, comp.begin(), forward_inclusive_scan);
-      auto complexity_fct = [&] (intT lo, intT hi) {
-        if (lo == hi) {
-          return 0;
-        } else if (lo == 0) {
-          return comp[hi - 1];
-        } else {
-          return comp[hi - 1] - comp[lo - 1];
-        }
-      };
-
-      if (hasState) {
-        parallel_for((intT)0, size, complexity_fct, [&] (intT i) {
-          if (keep[i]) keep[i] = !state[i].commit(I[i]);
-        });
-      } else {
-        parallel_for((intT)0, size, complexity_fct, [&] (intT i) {
-          if (keep[i]) keep[i] = !step.commit(I[i]);
-        });
-      }
-    } else {
-      if (hasState) {
-        parallel_for((intT)0, size, [&] (intT i) {
-          if (keep[i]) keep[i] = !state[i].commit(I[i]);
-        });
-      } else {
-        parallel_for((intT)0, size, [&] (intT i) {
-          if (keep[i]) keep[i] = !step.commit(I[i]);
-        });
-      }
     }
-
+    
+    if (hasState) {
+      parallel_for((intT)0, size, [&] (intT i) {
+        if (keep[i]) keep[i] = !state[i].commit(I[i]);
+      });
+    } else {
+      parallel_for((intT)0, size, [&] (intT i) {
+        if (keep[i]) keep[i] = !step.commit(I[i]);
+      });
+    }
+    
     // keep edges that failed to hook for next round
     numberKeep = (intT)dps::pack(keep.begin(), I.begin(), I.begin() + size, Ihold.begin());
     I.swap(Ihold);
