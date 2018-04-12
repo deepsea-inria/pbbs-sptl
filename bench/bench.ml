@@ -145,35 +145,160 @@ let string_of_percentage ?(show_plus=true) v =
 let string_of_percentage_change ?(show_plus=true) vold vnew =
   string_of_percentage ~show_plus:show_plus (vnew /. vold -. 1.0)
 
-(*****************************************************************************)
-(** Granularity-settings benchmark *)
-
-module ExpGranularitySettings = struct
-
-let name = "granularity-settings"
-
-let prog = "./spawnbench.sptl"
-
-let rec gen first last incr =
+let rec generate_in_range_by_incr first last incr =
   if first > last then
     [last]
   else
-    first :: (gen (first +. incr) last incr)
+    first :: (generate_in_range_by_incr (first +. incr) last incr)
 
-let mk_kappas =
-  mk_list float "sptl_kappa" (gen 0.2 50.0 2.0)
+(*****************************************************************************)
+(** A benchmark to find a good setting for kappa *)
 
-let mk_alphas =
-  mk_list float "sptl_alpha" (gen 1.0 3.0 0.4)
+module ExpFindKappa = struct
+
+let name = "find-kappa"
+
+let prog = "spawnbench.sptl"
+
+let prog_elision = "spawnbench.sptl_elision"
+
+let kappas =
+  generate_in_range_by_incr 0.2 40.0 2.0
+
+let mk_kappa =
+  mk float "sptl_kappa"
+    
+let mk_kappas = fun e ->
+  let f kappa =
+    Env.add Env.empty mk (float kappa)
+  in
+  List.map f kappas
+    
+let mk_alpha =
+  mk float "sptl_alpha" 1.3
+
+let mk_custom_kappa =
+  mk int "sptl_custom_kappa" 1
 
 let mk_configs =
-  (mk int "sptl_custom_kappa" 1) & mk_kappas & mk_alphas
+  mk_custom_kappa & (mk_list float "sptl_kappa" kappas) & mk_alpha
+
+let make() =
+  build "." [prog; prog_elision;] arg_virtual_build
+
+let nb_runs = 10
+    
+let run_modes =
+  Mk_runs.([
+    Mode arg_mode;
+    Virtual arg_virtual_run;
+    Runs nb_runs; ])
+    
+let run() = (
+  Mk_runs.(call (run_modes @ [
+    Output (file_results prog);
+    Timeout 400;
+    Args (
+      mk_prog prog
+    & mk_configs)]));
+  Mk_runs.(call (run_modes @ [
+    Output (file_results prog_elision);
+    Timeout 400;
+    Args (
+      mk_prog prog_elision)])))
+
+let check = nothing  (* do something here *)
+
+let spawnbench_formatter =
+ Env.format (Env.(
+   [ ("n", Format_custom (fun n -> sprintf "spawnbench(%s)" n)); ]
+  ))
+
+let plot() =
+  let results_all = Results.from_file (file_results prog) in
+  let env = Env.empty in
+  let kappa_exectime_pairs = ~~ List.map kappas (fun kappa ->
+    let [col] = ((mk_prog prog) & mk_custom_kappa & (mk_kappa kappa) & mk_alpha) env in
+    let results = Results.filter col results_all in
+    let e = Results.get_mean_of "exectime" results in
+    (kappa, e))
+  in
+  let elision_exectime =
+    let results_all = Results.from_file (file_results prog_elision) in
+    let [col] = (mk_prog prog_elision) env in
+    let results = Results.filter col results_all in
+    Results.get_mean_of "exectime" results
+  in
+  let rec find kes =
+    match kes with
+      [] ->
+        let (kappa, _) = List.hd (List.rev kappa_exectime_pairs) in
+        kappa
+    | (kappa, exectime) :: kes ->
+        if exectime < elision_exectime +. 0.05 *. elision_exectime then
+          kappa
+        else
+          find kes
+  in
+  let kappa = find kappa_exectime_pairs in
+  let oc = open_out "kappa" in
+  let _ = Printf.fprintf oc "%f\n" kappa in
+  close_out oc
+
+let all () = select make run check plot
+
+end
+
+(*****************************************************************************)
+(** A benchmark to find a good setting for alpha *)
+
+module ExpFindAlpha = struct
+
+let name = "find-alpha"
+
+let prog = "spawnbench.sptl"
+
+let alphas =
+  generate_in_range_by_incr 1.0 3.0 0.4
+    
+let mk_alphas =
+  mk_list float "sptl_alpha" alphas
+
+let arg_kappa =
+  let ic = open_in "kappa" in
+  try
+    let line = input_line ic in
+    close_in ic;
+    float_of_string line
+  with e ->
+    close_in_noerr ic;
+    raise e
+
+let mk_kappa =
+  mk float "sptl_kappa" arg_kappa
+
+let mk_custom_kappa =
+  ExpFindKappa.mk_custom_kappa
+
+let mk_proc =
+  mk int "proc" (List.hd arg_proc)
+    
+let mk_configs =
+  mk_custom_kappa & mk_kappa & mk_alphas & mk_proc & (mk int "n" 1000000000)
 
 let make() =
   build "." [prog] arg_virtual_build
 
+let nb_runs = 10
+    
+let run_modes =
+  Mk_runs.([
+    Mode arg_mode;
+    Virtual arg_virtual_run;
+    Runs nb_runs; ])
+    
 let run() =
-  Mk_runs.(call (par_run_modes @ [
+  Mk_runs.(call (ExpFindKappa.run_modes @ [
     Output (file_results name);
     Timeout 400;
     Args (
@@ -188,24 +313,33 @@ let spawnbench_formatter =
   ))
 
 let plot() =
-  Mk_bar_plot.(call ([
-      Bar_plot_opt Bar_plot.([
-         X_titles_dir Vertical;
-         Y_axis [Axis.Lower (Some 0.)] ]);
-      Formatter spawnbench_formatter;
-      Charts mk_unit;
-      Series mk_unit;
-      X (mk_kappas & mk_alphas);
-      Input (file_results name);
-      Output (file_plots name);
-      Y_label "exectime";
-      Y eval_exectime;
-  ]))
+  let results_all = Results.from_file (file_results name) in
+  let env = Env.empty in
+  let alpha_exectime_pairs = ~~ List.map alphas (fun alpha ->
+    let [col] = ((mk_prog prog) & (mk float "sptl_alpha" alpha)) env in
+    let results = Results.filter col results_all in
+    let e = Results.get_mean_of "exectime" results in
+    (alpha, e))
+  in
+  let rec find aes (min_alpha, min_exectime) =
+    match aes with
+      [] ->
+        min_alpha
+    | (alpha, exectime) :: aes ->
+        if exectime < min_exectime then
+          find aes (alpha, exectime)
+        else
+          find aes (min_alpha, min_exectime)
+  in
+  let alpha = find alpha_exectime_pairs (1.3, max_float) in
+  let oc = open_out "alpha" in
+  let _ = Printf.fprintf oc "%f\n" alpha in
+  close_out oc
 
 let all () = select make run check plot
 
 end
-  
+
 (*****************************************************************************)
 (** BFS benchmark *)
 
@@ -987,7 +1121,8 @@ end
 let _ =
   let arg_actions = XCmd.get_others() in
   let bindings = [
-    "granularity-settings",     ExpGranularitySettings.all;
+    "find-kappa",               ExpFindKappa.all;
+    "find-alpha",               ExpFindAlpha.all;    
     "bfs",                      ExpBFS.all;
     "compare",                  ExpCompare.all;
   ]
