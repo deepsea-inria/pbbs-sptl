@@ -265,13 +265,16 @@ let mk_alphas =
   mk_list float "sptl_alpha" alphas
 
 let arg_kappa =
-  let ic = open_in "kappa" in
-  try
-    let line = input_line ic in
-    close_in ic;
-    float_of_string line
-  with e ->
-    close_in_noerr ic;
+  if Sys.file_exists "kappa" then
+   let ic = open_in "kappa" in
+   try
+     let line = input_line ic in
+     close_in ic;
+     float_of_string line
+   with e ->
+     close_in_noerr ic;
+     20.0
+  else
     20.0
 
 let mk_kappa =
