@@ -272,7 +272,7 @@ let arg_kappa =
     float_of_string line
   with e ->
     close_in_noerr ic;
-    raise e
+    20.0
 
 let mk_kappa =
   mk float "sptl_kappa" arg_kappa
