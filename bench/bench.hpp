@@ -36,6 +36,9 @@ void load_presets_by_host() {
   } else if (hostname == "beast") {
     kappa = 30.0;
     update_size_ratio = 1.2;
+  } else if (hostname == "keith_analog") {
+    kappa = 10.2;
+    update_size_ratio = 3.0;
   }
 }
 
