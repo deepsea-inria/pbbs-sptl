@@ -25,8 +25,8 @@ void load_presets_by_host() {
     kappa = 25.0;
     update_size_ratio = 1.5;
   } else if (hostname == "cadmium") {
-    kappa = 25.0;
-    update_size_ratio = 1.5;
+    kappa = 12.2;
+    update_size_ratio = 1.4;
   } else if (hostname == "hiphi.aladdin.cs.cmu.edu") {
     kappa = 40.0;
     update_size_ratio = 1.2;
