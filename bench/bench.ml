@@ -603,7 +603,7 @@ let all_benchmarks =
   match arg_benchmarks with
   | ["all"] -> [
     "convexhull"; "samplesort"; "radixsort"; "nearestneighbors";
-    "suffixarray"; "mis"; "mst"; (*"matching";*) "spanning";
+    "suffixarray"; (*"mis";*) "mst"; (*"matching";*) "spanning";
     "delaunay"; (*"bfs";*) (*"refine"; *) "raycast"; (*"pbfs";*)
     ]
   | _ -> arg_benchmarks
