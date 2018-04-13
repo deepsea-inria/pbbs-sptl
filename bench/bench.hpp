@@ -22,8 +22,8 @@ void load_presets_by_host() {
   gethostname(_hostname, HOST_NAME_MAX);
   std::string hostname = std::string(_hostname);
   if (hostname == "teraram") {
-    kappa = 25.0;
-    update_size_ratio = 1.5;
+    kappa = 10.2;
+    update_size_ratio = 3.0;
   } else if (hostname == "cadmium") {
     kappa = 25.0;
     update_size_ratio = 1.5;
