@@ -603,8 +603,11 @@ let all_benchmarks =
   match arg_benchmarks with
   | ["all"] -> [
     "convexhull"; "samplesort"; "radixsort"; "nearestneighbors";
-    "suffixarray"; (*"mis";*) "mst"; (*"matching";*) "spanning";
+    "suffixarray";
     "delaunay"; (*"bfs";*) (*"refine"; *) "raycast"; (*"pbfs";*)
+    ]
+  | ["deterministic-reservations"] -> [
+      (*"mis";*) "mst"; (*"matching";*) "spanning";
     ]
   | _ -> arg_benchmarks
     
@@ -1121,10 +1124,10 @@ end
 let _ =
   let arg_actions = XCmd.get_others() in
   let bindings = [
-    "find-kappa",               ExpFindKappa.all;
-    "find-alpha",               ExpFindAlpha.all;    
-    "bfs",                      ExpBFS.all;
-    "compare",                  ExpCompare.all;
+    "find-kappa",                  ExpFindKappa.all;
+    "find-alpha",                  ExpFindAlpha.all;    
+    "bfs",                         ExpBFS.all;
+    "compare",                     ExpCompare.all;
   ]
   in
   system "mkdir -p _results" false;
