@@ -265,14 +265,17 @@ let mk_alphas =
   mk_list float "sptl_alpha" alphas
 
 let arg_kappa =
-  let ic = open_in "kappa" in
-  try
-    let line = input_line ic in
-    close_in ic;
-    float_of_string line
-  with e ->
-    close_in_noerr ic;
-    raise e
+  if Sys.file_exists "kappa" then
+   let ic = open_in "kappa" in
+   try
+     let line = input_line ic in
+     close_in ic;
+     float_of_string line
+   with e ->
+     close_in_noerr ic;
+     20.0
+  else
+    20.0
 
 let mk_kappa =
   mk float "sptl_kappa" arg_kappa
@@ -600,7 +603,7 @@ let all_benchmarks =
   match arg_benchmarks with
   | ["all"] -> [
     "convexhull"; "samplesort"; "radixsort"; "nearestneighbors";
-    "suffixarray"; "mis"; "mst"; (*"matching";*) "spanning";
+    "suffixarray"; (*"mis";*) "mst"; (*"matching";*) "spanning";
     "delaunay"; (*"bfs";*) (*"refine"; *) "raycast"; (*"pbfs";*)
     ]
   | _ -> arg_benchmarks
