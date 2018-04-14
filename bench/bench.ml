@@ -953,7 +953,7 @@ let plot() =
     let nb_application_cols = 2 in
     let nb_seq_elision_cols = 2 in
     let nb_single_core_cols = 2 in
-    let nb_multi_core_cols = 5 in
+    let nb_multi_core_cols = 4 in
     let nb_cols = nb_application_cols + nb_seq_elision_cols + nb_single_core_cols + (nb_multi_proc * nb_multi_core_cols) in
 
     Mk_table.build_table tex_file pdf_file (fun add ->
@@ -985,9 +985,7 @@ let plot() =
         let last = i + 1 = nb_multi_proc in
 	      Mk_table.cell ~escape:false ~last:false add "PBBS";
 	      Mk_table.cell ~escape:false ~last:false add "Oracle";
-	      Mk_table.cell ~escape:false ~last:false add "PBBS";
-	      Mk_table.cell ~escape:false ~last:false add "Oracle";
-	      Mk_table.cell ~escape:false ~last:last add "Nb threads");
+	      Mk_table.cell ~escape:false ~last:last add (Latex.tabular_multicol 2 "|c|" "Oracle / PBBS"));
       add Latex.tabular_newline;
 
       (* Emit third row, i.e., third-level column labels *)
@@ -1001,8 +999,8 @@ let plot() =
         let last = i + 1 = nb_multi_proc in
 	      Mk_table.cell ~escape:false ~last:false add "(s)";
 	      Mk_table.cell ~escape:false ~last:false add "";
-	      Mk_table.cell ~escape:false ~last:false add (Latex.tabular_multicol 2 "|c|" "Utilization");
-	      Mk_table.cell ~escape:false ~last:last add "Orc./PBBS");
+	      Mk_table.cell ~escape:false ~last:false add "Idle time";
+	      Mk_table.cell ~escape:false ~last:last add "Nb threads");
       add Latex.tabular_newline;
 
       (* Emit two rows for each benchmark *)
@@ -1073,37 +1071,36 @@ let plot() =
     ~~ List.iteri multi_proc (fun proc_i proc ->
       let last = proc_i + 1 = nb_multi_proc in
       let mk_procs = mk int "proc" proc in
-	    let (pbbs_sec, pbbs_utilization, pbbs_multi_proc_nb_threads) =
+	    let (pbbs_sec, pbbs_utilization, pbbs_idle_time, pbbs_multi_proc_nb_threads) =
         let [col] = ((mk_pbbs_prog benchmark.bd_name) & mk_procs) env in
         let env = Env.append env col in
         let results = Results.filter col results in
         let sec = eval_exectime env all_results results in
 	      let util = Results.get_mean_of "utilization" results in
+	      let idle_time = util *. sec in
 	      let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
 	      let nb_threads = if nb_threads = 0. then 1. else nb_threads
 	      in
-  	    (sec, util, nb_threads)
+  	    (sec, util, idle_time, nb_threads)
       in
-	    let (sptl_sec, sptl_utilization, sptl_multi_proc_nb_threads) =
+	    let (sptl_sec, sptl_utilization, sptl_idle_time, sptl_multi_proc_nb_threads) =
         let [col] = ((mk_sptl_prog benchmark.bd_name) & mk_procs) env in
         let env = Env.append env col in
         let results = Results.filter col results in
         let sec = eval_exectime env all_results results in
 	      let util = Results.get_mean_of "utilization" results in
+	      let idle_time = util *. sec in
 	      let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
 	      let nb_threads = if nb_threads = 0. then 1. else nb_threads
 	      in
-  	    (sec, util, nb_threads)
+  	    (sec, util, idle_time, nb_threads)
       in
 	    let sptl_rel_pbbs = string_of_percentage_change pbbs_sec sptl_sec in
-	    let pbbs_utilization_str = string_of_percentage ~show_plus:false pbbs_utilization in
-	    let sptl_utilization_str = string_of_percentage ~show_plus:false sptl_utilization in
-	    let nb_threads_enc_by_pbbs = sptl_multi_proc_nb_threads /. pbbs_multi_proc_nb_threads in
-	    let nb_threads_enc_by_pbbs_str = Printf.sprintf "%.3f" nb_threads_enc_by_pbbs in
+      let idle_time_str = string_of_percentage_change pbbs_idle_time sptl_idle_time in
+	    let nb_threads_enc_by_pbbs_str = string_of_percentage_change pbbs_multi_proc_nb_threads sptl_multi_proc_nb_threads in
 	    Mk_table.cell ~escape:false ~last:false add (Printf.sprintf "%.3f" pbbs_sec);
 	    Mk_table.cell ~escape:false ~last:false add sptl_rel_pbbs;
-	    Mk_table.cell ~escape:false ~last:false add pbbs_utilization_str;
-	    Mk_table.cell ~escape:false ~last:false add sptl_utilization_str;
+	    Mk_table.cell ~escape:false ~last:false add idle_time_str;
 	    Mk_table.cell ~escape:false ~last:last add nb_threads_enc_by_pbbs_str);
     add Latex.tabular_newline);
   );
