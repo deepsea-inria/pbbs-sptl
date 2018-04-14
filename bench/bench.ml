@@ -508,7 +508,7 @@ let plot() =
   let pdf_file = file_tables name in
   Mk_table.build_table tex_file pdf_file (fun add ->
 (*    let l = "S[table-format=2.2]" in*) (* later: use *)
-    let ls = "c|d{3.2}|c|d{3.2}|@{}d{3.2}@{}" in
+    let ls = "c|d{3.2}|d{3.2}|d{3.2}|c|d{3.2}|d{3.2}|d{3.2}|@{}d{3.2}@{}" in
     let hdr = Printf.sprintf "@{}l@{\,}|%s@{}" ls in
     add (Latex.tabular_begin hdr);                                    
     let _ = Mk_table.cell ~escape:false ~last:false add "" in
@@ -516,19 +516,31 @@ let plot() =
           let last = false (* i + 1 = nb_inner_loop*) in
           let n = "{" ^ (if inner_loop = "bfs" then "Flat" else "Nested") ^ "}" in
           let l = if last then "c" else "c|" in
-          let label = Latex.tabular_multicol 2 l n in
+          let label = Latex.tabular_multicol 4 l n in
           Mk_table.cell ~escape:false ~last:last add label);
     let label = Latex.tabular_multicol 1 "c" "Ours nested" in 
     Mk_table.cell ~escape:false ~last:true add label;
-    add "\\\\ \cline{1-5}";
+    add "\\\\ \cline{1-9}";
     let _ = Mk_table.cell ~escape:false ~last:false add "Graph" in
     for i=1 to nb_inner_loop do (
-      let l = "\multicolumn{1}{@{\,}l@{\,}|}{{\\begin{tabular}[x]{@{}c@{}}PBBS\\\\(sec.)\\end{tabular}}}" in
+      let l = "\multicolumn{1}{@{\,}l@{\,}|}{{\\begin{tabular}[x]{@{}c@{}}PBBS\\end{tabular}}}" in
       Mk_table.cell ~escape:false ~last:false add l;
-      Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{Ours}")
+      Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{Ours}";
+      Mk_table.cell ~escape:false ~last:false add "\multicolumn{2}{c|}{Oracle / PBBS}")
     done;
     Mk_table.cell ~escape:false ~last:true add "\multicolumn{1}{@{}c@{}}{{\\begin{tabular}[x]{@{}c@{}}vs. \\\\PBBS flat\\end{tabular}}}";
     add Latex.tabular_newline;
+
+    let _ = Mk_table.cell ~escape:false ~last:false add "" in
+    for i=1 to nb_inner_loop do (
+      Mk_table.cell ~escape:false ~last:false add "(sec.)";
+      Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{}";
+      Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{Idle time}";
+      Mk_table.cell ~escape:false ~last:false add "\multicolumn{1}{l|}{Nb threads}")
+    done;
+    Mk_table.cell ~escape:false ~last:true add "";
+    add Latex.tabular_newline;
+
         let all_results = Results.from_file results_file in
         let results = all_results in
         let env = Env.empty in
@@ -543,7 +555,7 @@ let plot() =
           let exectime_bfs_pbbs = ref 0.0 in
           let exectime_pbfs_pbbs = ref 0.0 in
           ~~ List.iteri arg_inner_loop (fun inner_loop_i inner_loop ->
-            let (pbbs_str, b) =
+            let (pbbs_str, b, pbbs_idle_time, pbbs_nb_threads) =
               let [col] = (mk_bfs_prog inner_loop "sptl" "pbbs") env in
               let env = Env.append env col in
               let results = Results.filter col results in
@@ -552,10 +564,14 @@ let plot() =
               let e = eval_exectime_stddev env all_results results in
               let err = if arg_print_err then Printf.sprintf "(%.2f%s)" e "$\\sigma$" else "" in
               let str = Printf.sprintf (if b < 10. then "%.2f" else "%.1f") b in
-              (str ^ " " ^ err, b)
+	      let util = Results.get_mean_of "utilization" results in
+	      let idle_time = util *. b in
+	      let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
+	      let nb_threads = if nb_threads = 0. then 1. else nb_threads in
+              (str ^ " " ^ err, b, idle_time, nb_threads)
             in
             let _ = Mk_table.cell ~escape:false ~last:false add pbbs_str in
-              let (sptl_str, grade_str) = 
+              let (sptl_str, grade_str, sptl_idle_time, sptl_nb_threads) = 
                 let [col] = (mk_bfs_prog inner_loop "sptl" "sptl") env in
                 let env = Env.append env col in
                 let results = Results.filter col results in
@@ -574,9 +590,15 @@ let plot() =
                   else
                     Printf.sprintf "$\\times^{%.0f}$" grade
                 in
-                (Printf.sprintf "%s %s" vs err, grade)
+		let util = Results.get_mean_of "utilization" results in
+		let idle_time = util *. b in
+		let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
+		let nb_threads = if nb_threads = 0. then 1. else nb_threads in
+                (Printf.sprintf "%s %s" vs err, grade, idle_time, nb_threads)
               in
               Mk_table.cell ~escape:false add sptl_str;
+              Mk_table.cell ~escape:false add (string_of_percentage_change pbbs_idle_time sptl_idle_time);
+	      Mk_table.cell ~escape:false add (string_of_percentage_change pbbs_nb_threads sptl_nb_threads);
             ());
           let str_diff_sptl = string_of_percentage_change (!exectime_bfs_pbbs) (!exectime_pbfs_sptl) in
           Mk_table.cell ~escape:false ~last:true add str_diff_sptl;
