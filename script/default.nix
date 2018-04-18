@@ -23,10 +23,7 @@ stdenv.mkDerivation rec {
 
   buildInputs =
     let docs =
-      if buildDocs then [
-        pkgs.pandoc pkgs.texlive.combined.scheme-full
-      ] else
-        [];
+      if buildDocs then [ pkgs.pandoc ] else [];
     in
     let lu =
       if useLibunwind then
