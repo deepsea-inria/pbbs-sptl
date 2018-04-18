@@ -31,7 +31,7 @@ void load_presets_by_host() {
     kappa = 40.0;
     update_size_ratio = 1.2;
   } else if (hostname == "aware.aladdin.cs.cmu.edu") {
-    kappa = 4.2;
+    kappa = 8.2;
     update_size_ratio = 1.4;
   } else if (hostname == "beast") {
     kappa = 30.0;
