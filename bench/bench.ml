@@ -6,6 +6,25 @@ let system = XSys.command_must_succeed_or_virtual
 (*****************************************************************************)
 (** Parameters *)
 
+let read_string_of fname =
+  if not (Sys.file_exists fname) then
+    None
+  else
+    let chan = open_in fname in
+    try
+      let s = String.trim (input_line chan) in
+      close_in chan;
+      Some s
+    with End_of_file -> (close_in chan; None)      
+                      
+let find_sptl_config _  =
+  match read_string_of "sptl_config.txt" with
+  | None -> None
+  | Some sptl_config_path ->
+     match read_string_of (sptl_config_path ^ "/nb_cores") with
+       None -> None
+     | Some nb_str -> Some (int_of_string nb_str)
+
 let arg_virtual_run = XCmd.mem_flag "virtual_run"
 let arg_virtual_build = XCmd.mem_flag "virtual_build"
 let arg_nb_runs = XCmd.parse_or_default_int "runs" 1
@@ -30,13 +49,11 @@ let arg_proc =
       [ 8; ]
     else if List.length cmdline_proc > 0 then
       cmdline_proc
-    else
-      let _ = system "./get-nb-cores" false in
-      let chan = open_in "nb_cores" in
-      let str = try input_line chan
-      with End_of_file -> (close_in chan; "1")
-      in
-      [ int_of_string str; ]
+    else (
+      match find_sptl_config() with
+        None -> [ 1; ]
+      | Some nb_proc ->
+         [ nb_proc; ])
   in
   let default =
     if List.exists (fun p -> p = 1) default then

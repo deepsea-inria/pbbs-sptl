@@ -6,7 +6,7 @@
   pbbs-include ? ../../pbbs-include,
   cmdline ? ../../cmdline,
   chunkedseq ? ../../chunkedseq,
-  cilk-plus-rts-with-stats ? ../../cilk-plus-rts-with-stats,
+  cilk-plus-rts-with-stats ? import ../../cilk-plus-rts-with-stats/script/default.nix { cilkRtsSrc=../../cilk-plus-rts-with-stats; },
   gperftools ? pkgs.gperftools,
   useHwloc ? false,
   hwloc ? pkgs.hwloc,
@@ -51,13 +51,15 @@ stdenv.mkDerivation rec {
       USE_32_BIT_WORD_SIZE=1
       USE_CILK=1
       CUSTOM_MALLOC_PREFIX=-ltcmalloc -L${gperftools}/lib
-      CILK_EXTRAS_PREFIX=-L ${cilk-plus-rts-with-stats}/lib -I  ${cilk-plus-rts-with-stats}/include -ldl -DCILK_RUNTIME_WITH_STATS
+      CILK_EXTRAS_PREFIX=-L ${cilk-plus-rts-with-stats}/lib -I  ${cilk-plus-rts-with-stats}/include -DCILK_RUNTIME_WITH_STATS
       ${hwlocConfig}    
     '';
     in
+    let sptlConfigFile = pkgs.writeText "sptl_config.txt" "${sptl}/bin/"; in
     ''
     cp -r --no-preserve=mode ${pbench} pbench
     cp ${settingsScript} bench/settings.sh
+    cp ${sptlConfigFile} bench/sptl_config.txt
     '';
 
   buildPhase =
@@ -66,6 +68,18 @@ stdenv.mkDerivation rec {
         make -C doc pbbs-sptl.pdf pbbs-sptl.html
       '' else "";
     in
+    let getNbCoresScript = pkgs.writeScript "get-nb-cores.sh" ''
+      #!/usr/bin/env bash
+      ${sptl}/bin/get-nb-cores.sh
+    '';
+    in
+    ''
+    ${docs}
+    cp ${getNbCoresScript} bench/
+    make -C bench bench.pbench
+    '';  
+
+  installPhase =
     let lu = if useLibunwind then ''
         --prefix LD_LIBRARY_PATH ":" ${libunwind}/lib
       '' else "";
@@ -75,29 +89,24 @@ stdenv.mkDerivation rec {
       '' else "";
     in
     ''
-    ${docs}
-    make -C bench bench.pbench
-    pushd bench
-    wrapProgram bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
+    mkdir -p $out/bench/
+    cp bench/bench.pbench bench/timeout.out $out/bench/
+    wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
        --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin \
        --prefix PATH ":" ${gcc}/bin \
+       --prefix PATH ":" $out/bench \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
        --prefix LD_LIBRARY_PATH ":" ${gperftools}/lib \
        --set TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD 100000000000 \
        ${lu} \
        ${hw}
-    popd
-    '';  
-
-  installPhase =
-    ''
     pushd bench
-    ./bench.pbench compare -only make
-    ./bench.pbench bfs -only make
+    $out/bench/bench.pbench compare -only make
+    $out/bench/bench.pbench bfs -only make
     popd
-    cp bench/Makefile bench/bench.pbench bench/timeout.out bench/*.sptl \
-       bench/*.sptl_elsion $out/bench/
+    cp bench/sptl_config.txt $out/bench/sptl_config.txt
+    cp bench/*.sptl bench/*.sptl_elision $out/bench/
     mkdir -p $out/doc
     cp doc/pbbs-sptl.* doc/Makefile $out/doc/
     '';
