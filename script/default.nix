@@ -26,9 +26,7 @@ stdenv.mkDerivation rec {
       if buildDocs then [ pkgs.pandoc ] else [];
     in
     let lu =
-      if useLibunwind then
-        [ libunwind ]
-      else [];
+      if useLibunwind then [ libunwind ] else [];
     in
     [ pbench sptl pbbs-include cmdline chunkedseq
       pkgs.makeWrapper pkgs.R pkgs.texlive.combined.scheme-small
@@ -45,11 +43,11 @@ stdenv.mkDerivation rec {
       '' else "";
     in
     let settingsScript = pkgs.writeText "settings.sh" ''
-      PBENCH_PATH=${pbench}
+      PBENCH_PATH=../pbench/
       CMDLINE_PATH=${cmdline}/include/
       CHUNKEDSEQ_PATH=${chunkedseq}/include/
       SPTL_PATH=${sptl}/include/
-      PBBS_INCLUDE_PATH=${pbbs-include}/include/
+      PBBS_INCLUDE_PATH=${pbbs-include}
       USE_32_BIT_WORD_SIZE=1
       USE_CILK=1
       CUSTOM_MALLOC_PREFIX=-ltcmalloc -L${gperftools}/lib
@@ -58,36 +56,16 @@ stdenv.mkDerivation rec {
     '';
     in
     ''
-    mkdir -p $out/bench/
-    cat >> $out/bench/settings.sh <<__EOT__
-    PBBS_SPTL_PATH=$out/include/
-    __EOT__
-    cat ${settingsScript} >> $out/bench/settings.sh
-    cp $out/bench/settings.sh bench
-    mkdir -p bench-script
-    cp -r --no-preserve=mode ${pbench} bench-script/pbench
-    cp bench/bench.ml bench/Makefile bench-script
-    cat >> bench-script/settings.sh <<__EOT__
-    PBENCH_PATH=./pbench/
-    __EOT__
+    cp -r --no-preserve=mode ${pbench} pbench
+    cp ${settingsScript} bench/settings.sh
     '';
 
   buildPhase =
     let docs =
       if buildDocs then ''
         make -C doc pbbs-sptl.pdf pbbs-sptl.html
-      ''
-      else ''
-        # nothing to build
-      '';
+      '' else "";
     in
-    ''
-    ${docs}
-    make -C bench-script bench.pbench
-    cp bench-script/bench.pbench bench-script/timeout.out bench/
-    '';  
-
-  installPhase =
     let lu = if useLibunwind then ''
         --prefix LD_LIBRARY_PATH ":" ${libunwind}/lib
       '' else "";
@@ -97,8 +75,10 @@ stdenv.mkDerivation rec {
       '' else "";
     in
     ''
-    cp bench/Makefile bench/bench.pbench bench/timeout.out bench/*.cpp bench/*.hpp $out/bench/
-    wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
+    ${docs}
+    make -C bench bench.pbench
+    pushd bench
+    wrapProgram bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
        --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin \
        --prefix PATH ":" ${gcc}/bin \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
@@ -107,8 +87,17 @@ stdenv.mkDerivation rec {
        --set TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD 100000000000 \
        ${lu} \
        ${hw}
-    mkdir -p $out/include/
-    cp include/*.hpp $out/include/
+    popd
+    '';  
+
+  installPhase =
+    ''
+    pushd bench
+    ./bench.pbench compare -only make
+    ./bench.pbench bfs -only make
+    popd
+    cp bench/Makefile bench/bench.pbench bench/timeout.out bench/*.sptl \
+       bench/*.sptl_elsion $out/bench/
     mkdir -p $out/doc
     cp doc/pbbs-sptl.* doc/Makefile $out/doc/
     '';

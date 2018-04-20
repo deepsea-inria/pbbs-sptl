@@ -6,7 +6,7 @@ CMDLINE_PATH=$(PACKAGE_PATH)/cmdline/include
 CHUNKEDSEQ_PATH=$(PACKAGE_PATH)/chunkedseq/include
 SPTL_PATH=$(PACKAGE_PATH)/sptl/include
 PBBS_INCLUDE_PATH=$(PACKAGE_PATH)/pbbs-include/
-PBBS_SPTL_PATH=$(PACKAGE_PATH)/pbbs-sptl/include
+PBBS_SPTL_PATH=../include
 
 ####################################################################
 # Makefile options
