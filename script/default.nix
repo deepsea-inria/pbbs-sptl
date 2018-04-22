@@ -90,15 +90,15 @@ stdenv.mkDerivation rec {
         --prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib
       '' else "";
     in
-    let flags1 = if pathToResults != "" then ''
-        -path_to_results ${pathToResults}"
-      '' else "";
+    let rf = if pathToResults != "" then
+        "-path_to_results ${pathToResults}"
+      else "";
     in
-    let flags2 = if pathToResults != "" then ''
-        -path_to_data ${pathToData}
-      '' else "";
+    let df = if pathToResults != "" then
+        "-path_to_data ${pathToData}"
+      else "";
     in
-    let flags = "${flags1} ${flags2}";
+    let flags = "${rf} ${df}";
     in
     ''
     mkdir -p $out/bench/
