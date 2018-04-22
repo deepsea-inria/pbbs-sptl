@@ -64,6 +64,7 @@ let arg_proc =
   XCmd.parse_or_default_list_int "proc" default
 let arg_print_err = XCmd.parse_or_default_bool "print_error" false
 let arg_scheduler = XCmd.parse_or_default_string "scheduler" ""
+let arg_path_to_data = XCmd.parse_or_default_string "path_to_data" "_data"
     
 let par_run_modes =
   Mk_runs.([
@@ -369,7 +370,7 @@ let name = "bfs"
 
 let results_file = "_results/results_bfs.txt" 
                    
-let graphfile_of n = "_data/" ^ n ^ ".bin"
+let graphfile_of n = arg_path_to_data ^ "/" ^ n ^ ".bin"
 
 let graphfiles' =
   let manual = 
@@ -657,7 +658,7 @@ let sptl_progs = List.map sptl_prog_of all_benchmarks
 let sptl_elision_progs = List.map sptl_elision_prog_of all_benchmarks      
 let all_progs = List.concat [sptl_progs; sptl_elision_progs]
 
-let path_to_infile n = "_data/" ^ n
+let path_to_infile n = arg_path_to_data ^ "/" ^ n
 
 let mk_infiles ty descr = fun e ->
   let f (p, t, n) =
