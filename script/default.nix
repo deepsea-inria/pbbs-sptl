@@ -13,6 +13,8 @@
   libunwind ? pkgs.libunwind,
   useLibunwind ? false,
   gcc ? pkgs.gcc,
+  pathToResults ? "",
+  pathToData ? "",
   buildDocs ? false
 }:
 
@@ -88,6 +90,16 @@ stdenv.mkDerivation rec {
         --prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib
       '' else "";
     in
+    let flags1 = if pathToResults != "" then ''
+        -path_to_results ${pathToResults}"
+      '' else "";
+    in
+    let flags2 = if pathToResults != "" then ''
+        -path_to_data ${pathToData}
+      '' else "";
+    in
+    let flags = "${flags1} ${flags2}";
+    in
     ''
     mkdir -p $out/bench/
     cp bench/bench.pbench bench/timeout.out $out/bench/
@@ -100,7 +112,8 @@ stdenv.mkDerivation rec {
        --prefix LD_LIBRARY_PATH ":" ${gperftools}/lib \
        --set TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD 100000000000 \
        ${lu} \
-       ${hw}
+       ${hw} \
+       --add-flags "${flags}"
     pushd bench
     $out/bench/bench.pbench compare -only make
     $out/bench/bench.pbench bfs -only make
