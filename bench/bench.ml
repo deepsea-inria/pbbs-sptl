@@ -90,10 +90,14 @@ let select make run check plot =
       if List.mem "run" arg_skips && not (List.mem "make" arg_skips)
          then "make"::arg_skips
          else arg_skips
-      in
-   Pbench.execute_from_only_skip arg_onlys arg_skips [
+  in
+  let run' () = (
+      system (Printf.sprintf "mkdir -p %s" arg_path_to_results) false;
+      run())
+  in
+  Pbench.execute_from_only_skip arg_onlys arg_skips [
       "make", make;
-      "run", run;
+      "run", run';
       "check", check;
       "plot", plot;
       ]
@@ -1171,6 +1175,5 @@ let _ =
     "compare",                     ExpCompare.all;
   ]
   in
-  system (Printf.sprintf "mkdir -p %s" arg_path_to_results) false;
   Pbench.execute_from_only_skip arg_actions [] bindings;
   ()
