@@ -65,6 +65,7 @@ let arg_proc =
 let arg_print_err = XCmd.parse_or_default_bool "print_error" false
 let arg_scheduler = XCmd.parse_or_default_string "scheduler" ""
 let arg_path_to_data = XCmd.parse_or_default_string "path_to_data" "_data"
+let arg_path_to_results = XCmd.parse_or_default_string "path_to_results" "_results"
     
 let par_run_modes =
   Mk_runs.([
@@ -106,16 +107,16 @@ let build path bs is_virtual =
    system (sprintf "make -C %s -j %s" path (String.concat " " bs)) is_virtual
 
 let file_results exp_name =
-  Printf.sprintf "results_%s.txt" exp_name
+  Printf.sprintf "%s/results_%s.txt" arg_path_to_results exp_name
 
 let file_tables_src exp_name =
-  Printf.sprintf "tables_%s.tex" exp_name
+  Printf.sprintf "%s/tables_%s.tex" arg_path_to_results exp_name
 
 let file_tables exp_name =
-  Printf.sprintf "tables_%s.pdf" exp_name
+  Printf.sprintf "%s/tables_%s.pdf" arg_path_to_results exp_name
 
 let file_plots exp_name =
-  Printf.sprintf "plots_%s.pdf" exp_name
+  Printf.sprintf "%s/plots_%s.pdf" arg_path_to_results exp_name
 
 (** Evaluation functions *)
 
@@ -1170,6 +1171,6 @@ let _ =
     "compare",                     ExpCompare.all;
   ]
   in
-  system "mkdir -p _results" false;
+  system (Printf.sprintf "mkdir -p %s" arg_path_to_results) false;
   Pbench.execute_from_only_skip arg_actions [] bindings;
   ()
