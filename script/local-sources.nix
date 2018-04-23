@@ -14,4 +14,6 @@ let pkgs = import <nixpkgs> {}; in
 
   pbbsIncludeSrc = ../../pbbs-include;
 
+  pbbsSptlSrc = ../.;
+
 }

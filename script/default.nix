@@ -1,6 +1,5 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
-  pbbsSptlSrc ? ../.,
   sources ? import ./local-sources.nix,
   gperftools ? pkgs.gperftools,
   useHwloc ? false,
@@ -32,23 +31,18 @@ let
     buildDocs = buildDocs;
 
     pbench = callPackage "${sources.pbenchSrc}/script/default.nix" { };
-
     cmdline = callPackage "${sources.cmdlineSrc}/script/default.nix" { };
-
     cilk-plus-rts-with-stats = callPackage "${sources.cilkRtsSrc}/script/default.nix" { };
-
     chunkedseq = callPackage "${sources.chunkedseqSrc}/script/default.nix" { };
-
     sptl = callPackage "${sources.sptlSrc}/script/default.nix" { };
-
     pbbs-include = callPackage "${sources.pbbsIncludeSrc}/default.nix" { };
-
+    pbbsSptlSrc = sources.pbbsSptlSrc;
+    
   };
 
 in
 
 with self;
-
 
 stdenv.mkDerivation rec {
   name = "pbbs-sptl";
