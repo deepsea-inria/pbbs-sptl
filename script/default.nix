@@ -1,12 +1,7 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
   pbbsSptlSrc ? ../.,
-  pbench ? ../../pbench,
-  sptl ? ../../sptl,
-  pbbs-include ? ../../pbbs-include,
-  cmdline ? ../../cmdline,
-  chunkedseq ? ../../chunkedseq,
-  cilk-plus-rts-with-stats ? import ../../cilk-plus-rts-with-stats/script/default.nix { cilkRtsSrc=../../cilk-plus-rts-with-stats; },
+  sources ? import ./local-sources.nix,
   gperftools ? pkgs.gperftools,
   useHwloc ? false,
   hwloc ? pkgs.hwloc,
@@ -18,6 +13,43 @@
   buildDocs ? false
 }:
 
+let
+
+  callPackage = pkgs.lib.callPackageWith (pkgs // sources // self);
+
+  self = {
+
+    hwloc = hwloc;
+    useHwloc = useHwloc;
+
+    libunwind = libunwind;
+    useLibunwind = useLibunwind;
+
+    gperftools = gperftools;
+
+    gcc = gcc;
+
+    buildDocs = buildDocs;
+
+    pbench = callPackage "${sources.pbenchSrc}/script/default.nix" { };
+
+    cmdline = callPackage "${sources.cmdlineSrc}/script/default.nix" { };
+
+    cilk-plus-rts-with-stats = callPackage "${sources.cilkRtsSrc}/script/default.nix" { };
+
+    chunkedseq = callPackage "${sources.chunkedseqSrc}/script/default.nix" { };
+
+    sptl = callPackage "${sources.sptlSrc}/script/default.nix" { };
+
+    pbbs-include = callPackage "${sources.pbbsIncludeSrc}/default.nix" { };
+
+  };
+
+in
+
+with self;
+
+
 stdenv.mkDerivation rec {
   name = "pbbs-sptl";
 
@@ -25,7 +57,11 @@ stdenv.mkDerivation rec {
 
   buildInputs =
     let docs =
-      if buildDocs then [ pkgs.pandoc ] else [];
+      if buildDocs then
+        let pandocCiteproc = pkgs.haskellPackages.ghcWithPackages (pkgs: with pkgs; [pandoc-citeproc]);
+        in
+        [ pkgs.pandoc pandocCiteproc ]
+      else [];
     in
     let lu =
       if useLibunwind then [ libunwind ] else [];
@@ -82,23 +118,29 @@ stdenv.mkDerivation rec {
     '';  
 
   installPhase =
-    let lu = if useLibunwind then ''
-        --prefix LD_LIBRARY_PATH ":" ${libunwind}/lib
-      '' else "";
+    let lu =
+        if useLibunwind then
+           ''--prefix LD_LIBRARY_PATH ":" ${libunwind}/lib''
+        else "";
     in
-    let hw = if useHwloc then ''
-        --prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib
-      '' else "";
+    let hw =
+        if useHwloc then
+          ''--prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib''
+        else "";
     in
-    let rf = if pathToResults != "" then
+    let nmf = "-skip make";
+    in
+    let rf =
+      if pathToResults != "" then
         "-path_to_results ${pathToResults}"
       else "";
     in
-    let df = if pathToResults != "" then
+    let df =
+      if pathToResults != "" then
         "-path_to_data ${pathToData}"
       else "";
     in
-    let flags = "${rf} ${df}";
+    let flags = "${nmf} ${rf} ${df}";
     in
     ''
     mkdir -p $out/bench/
@@ -110,6 +152,7 @@ stdenv.mkDerivation rec {
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
        --prefix LD_LIBRARY_PATH ":" ${gperftools}/lib \
+       --prefix LD_LIBRARY_PATH ":" ${cilk-plus-rts-with-stats}/lib \
        --set TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD 100000000000 \
        ${lu} \
        ${hw} \
