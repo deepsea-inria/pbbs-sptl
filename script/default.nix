@@ -62,7 +62,7 @@ stdenv.mkDerivation rec {
     in
     [ pbench sptl pbbs-include cmdline chunkedseq
       pkgs.makeWrapper pkgs.R pkgs.texlive.combined.scheme-small
-      pkgs.ocaml gcc
+      pkgs.ocaml gcc pkgs.wget
     ] ++ docs ++ lu;
 
   configurePhase =
@@ -142,6 +142,7 @@ stdenv.mkDerivation rec {
     wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
        --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin \
        --prefix PATH ":" ${gcc}/bin \
+       --prefix PATH ":" ${pkgs.wget}/bin \
        --prefix PATH ":" $out/bench \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
