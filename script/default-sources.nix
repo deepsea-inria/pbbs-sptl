@@ -33,8 +33,8 @@ let pkgs = import <nixpkgs> {}; in
   sptlSrc = pkgs.fetchFromGitHub {
     owner  = "deepsea-inria";
     repo   = "sptl";
-    rev    = "cb2bf943780efb63b4ab231f7bc5f3af631ed822";
-    sha256 = "17rm2cz0qa2c3pi1ya3rv8143g3d7j0hgm9c9bd5q7chsf0abi3c";
+    rev    = "c23515738313529846797778f1d81da8374168c6";
+    sha256 = "1piv1a9aj1qdv08vnlvwdhkaqzin9my49i2pbkyi6x35bwsr50mh";
   };
 
   pbbsIncludeSrc = pkgs.fetchFromGitHub {
@@ -47,8 +47,8 @@ let pkgs = import <nixpkgs> {}; in
   pbbsSptlSrc = pkgs.fetchFromGitHub {
     owner  = "deepsea-inria";
     repo   = "pbbs-sptl";
-    rev    = "b4765d504a984412810fc83099c3780e0be2bd0e";
-    sha256 = "1h14vqzl6asj8v3crw623k8yr55q6hzr8il3ig1d5ym4xp8kj49m";
+    rev    = "0c0566ae047cb9db69258505c53aaad16218df29";
+    sha256 = "04rp8wcav30jfxiaadhn2hdkz7wlf0339c7wlyvazsmjgpzfci25";
   };
 
 }
