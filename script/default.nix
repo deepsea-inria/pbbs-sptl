@@ -2,7 +2,6 @@
   stdenv ? pkgs.stdenv,
   sources ? import ./default-sources.nix,
   gperftools ? pkgs.gperftools,
-  useHwloc ? false,
   hwloc ? pkgs.hwloc,
   libunwind ? pkgs.libunwind,
   useLibunwind ? false,
@@ -19,7 +18,6 @@ let
   self = {
 
     hwloc = hwloc;
-    useHwloc = useHwloc;
 
     libunwind = libunwind;
     useLibunwind = useLibunwind;
@@ -67,12 +65,12 @@ stdenv.mkDerivation rec {
 
   configurePhase =
     let hwlocConfig =
-      if useHwloc then ''
+      ''
         USE_HWLOC=1
         USE_MANUAL_HWLOC_PATH=1
         MY_HWLOC_FLAGS=-I ${hwloc.dev}/include/
         MY_HWLOC_LIBS=-L ${hwloc.lib}/lib/ -lhwloc
-      '' else "";
+      '';
     in
     let settingsScript = pkgs.writeText "settings.sh" ''
       PBENCH_PATH=../pbench/
@@ -118,9 +116,7 @@ stdenv.mkDerivation rec {
         else "";
     in
     let hw =
-        if useHwloc then
-          ''--prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib''
-        else "";
+        ''--prefix LD_LIBRARY_PATH ":" ${hwloc.lib}/lib'';
     in
     let nmf = "-skip make";
     in
@@ -130,7 +126,7 @@ stdenv.mkDerivation rec {
       else "";
     in
     let df =
-      if pathToResults != "" then
+      if pathToData != "" then
         "-path_to_data ${pathToData}"
       else "";
     in
