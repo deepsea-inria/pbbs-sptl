@@ -1,6 +1,6 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
-  sources ? import ./default-sources.nix,
+  sources ? import ./local-sources.nix,
   gperftools ? pkgs.gperftools,
   hwloc ? pkgs.hwloc,
   libunwind ? pkgs.libunwind,
@@ -153,7 +153,7 @@ stdenv.mkDerivation rec {
     $out/bench/bench.pbench bfs -only make
     popd
     cp bench/sptl_config.txt $out/bench/sptl_config.txt
-    cp bench/*.sptl bench/*.sptl_elision $out/bench/
+    cp bench/*.sptl bench/*.sptl_elision bench/*.sptl_nograin $out/bench/
     mkdir -p $out/doc
     cp doc/pbbs-sptl.* doc/Makefile $out/doc/
     '';
