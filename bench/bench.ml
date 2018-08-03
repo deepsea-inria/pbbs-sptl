@@ -811,10 +811,12 @@ let all_benchmarks =
     
 let sptl_prog_of n = n ^ ".sptl"
 let sptl_elision_prog_of n = n ^ ".sptl_elision"
+let sptl_nograin_prog_of n = n ^ ".sptl_nograin"
                              
 let sptl_progs = List.map sptl_prog_of all_benchmarks
-let sptl_elision_progs = List.map sptl_elision_prog_of all_benchmarks      
-let all_progs = List.concat [sptl_progs; sptl_elision_progs]
+let sptl_elision_progs = List.map sptl_elision_prog_of all_benchmarks
+let sptl_nograin_progs = List.map sptl_nograin_prog_of all_benchmarks
+let all_progs = List.concat [sptl_progs; sptl_elision_progs; sptl_nograin_progs;]
 
 let path_to_infile n = arg_path_to_data ^ "/" ^ n
 
@@ -868,7 +870,11 @@ let mk_sptl_elision_prog n =
 let mk_pbbs_elision_prog n =
     (mk string "prog" (sptl_elision_prog_of n))
   & mk_pbbs_lib
-    
+
+let mk_pbbs_nograin_prog n =
+    (mk string "prog" (sptl_nograin_prog_of n))
+  & mk_pbbs_lib
+  
 type input_descriptor =
     string * Env.value * string (* file name, type, pretty name *)
     
@@ -1115,6 +1121,9 @@ let file_results_sptl_elision exp_name =
 let file_results_pbbs_elision exp_name =
   file_results (exp_name ^ "_cilk_elision")
 
+let file_results_pbbs_nograin exp_name =
+  file_results (exp_name ^ "_cilk_nograin")
+
 let file_results_sptl_single_proc exp_name =
   file_results (exp_name ^ "_sptl_single_proc")
 
@@ -1142,15 +1151,17 @@ let run() =
     let sptl_elision_prog = mk_sptl_elision_prog benchmark.bd_name in
     let pbbs_prog = mk_pbbs_prog benchmark.bd_name in
     let pbbs_elision_prog = mk_pbbs_elision_prog benchmark.bd_name in
+    let pbbs_nograin_prog = mk_pbbs_nograin_prog benchmark.bd_name in
     (if nb_multi_proc > 0 then (
-      rpar ((sptl_prog ++ pbbs_prog) & mk_multi_proc) (file_results benchmark.bd_name))
+      rpar ((sptl_prog ++ pbbs_prog ++ pbbs_nograin_prog) & mk_multi_proc) (file_results benchmark.bd_name))
      else
        ());
     (if List.exists (fun p -> p = 1) arg_proc then (
       rseq (sptl_prog & mk_single_proc) (file_results_sptl_single_proc benchmark.bd_name);
       rseq (pbbs_prog & mk_single_proc) (file_results_pbbs_single_proc benchmark.bd_name);
       rseq (sptl_elision_prog & mk_single_proc) (file_results_sptl_elision benchmark.bd_name);
-      rseq (pbbs_elision_prog & mk_single_proc) (file_results_pbbs_elision benchmark.bd_name))
+      rseq (pbbs_elision_prog & mk_single_proc) (file_results_pbbs_elision benchmark.bd_name);
+      rseq (pbbs_nograin_prog & mk_single_proc) (file_results_pbbs_nograin benchmark.bd_name))
      else
        ())
   ) benchmarks
