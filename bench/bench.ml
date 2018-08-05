@@ -68,6 +68,7 @@ let arg_print_err = XCmd.parse_or_default_bool "print_error" false
 let arg_scheduler = XCmd.parse_or_default_string "scheduler" ""
 let arg_path_to_data = XCmd.parse_or_default_string "path_to_data" "_data"
 let arg_path_to_results = XCmd.parse_or_default_string "path_to_results" "_results"
+let arg_nograin = XCmd.parse_or_default_bool "nograin" false
     
 let par_run_modes =
   Mk_runs.([
@@ -1121,6 +1122,9 @@ let file_results_sptl_elision exp_name =
 let file_results_pbbs_elision exp_name =
   file_results (exp_name ^ "_cilk_elision")
 
+let file_results_pbbs_nograin_single_proc exp_name =
+  file_results (exp_name ^ "_cilk_nograin_single_proc")
+
 let file_results_pbbs_nograin exp_name =
   file_results (exp_name ^ "_cilk_nograin")
 
@@ -1153,7 +1157,11 @@ let run() =
     let pbbs_elision_prog = mk_pbbs_elision_prog benchmark.bd_name in
     let pbbs_nograin_prog = mk_pbbs_nograin_prog benchmark.bd_name in
     (if nb_multi_proc > 0 then (
-      rpar ((sptl_prog ++ pbbs_prog ++ pbbs_nograin_prog) & mk_multi_proc) (file_results benchmark.bd_name))
+       rpar ((sptl_prog ++ pbbs_prog) & mk_multi_proc) (file_results benchmark.bd_name);
+       if arg_nograin then
+         rpar (pbbs_nograin_prog & mk_multi_proc) (file_results_pbbs_nograin benchmark.bd_name)
+       else ();
+       ())
      else
        ());
     (if List.exists (fun p -> p = 1) arg_proc then (
@@ -1161,7 +1169,10 @@ let run() =
       rseq (pbbs_prog & mk_single_proc) (file_results_pbbs_single_proc benchmark.bd_name);
       rseq (sptl_elision_prog & mk_single_proc) (file_results_sptl_elision benchmark.bd_name);
       rseq (pbbs_elision_prog & mk_single_proc) (file_results_pbbs_elision benchmark.bd_name);
-      rseq (pbbs_nograin_prog & mk_single_proc) (file_results_pbbs_nograin benchmark.bd_name))
+      if arg_nograin then
+        rseq (pbbs_nograin_prog & mk_single_proc) (file_results_pbbs_nograin_single_proc benchmark.bd_name)
+      else ();
+      ())
      else
        ())
   ) benchmarks
@@ -1184,10 +1195,11 @@ let plot() =
                  ]
                  ))
     in
+    let nb_nograin_cols = if arg_nograin then 1 else 0 in
     let nb_application_cols = 2 in
     let nb_seq_elision_cols = 2 in
-    let nb_single_core_cols = 2 in
-    let nb_multi_core_cols = 4 in
+    let nb_single_core_cols = 2 + nb_nograin_cols in
+    let nb_multi_core_cols = 4  + nb_nograin_cols + (2 * nb_nograin_cols) in
     let nb_cols = nb_application_cols + nb_seq_elision_cols + nb_single_core_cols + (nb_multi_proc * nb_multi_core_cols) in
 
     Mk_table.build_table tex_file pdf_file (fun add ->
@@ -1214,12 +1226,20 @@ let plot() =
       Mk_table.cell ~escape:false ~last:false add "PBBS";
       Mk_table.cell ~escape:false ~last:false add "Oracle";
       Mk_table.cell ~escape:false ~last:false add "PBBS";
+      if arg_nograin then
+        Mk_table.cell ~escape:false ~last:false add "No grain"
+      else ();
       Mk_table.cell ~escape:false ~last:false add "Oracle";
       ~~ List.iteri multi_proc (fun i proc ->
         let last = i + 1 = nb_multi_proc in
-	      Mk_table.cell ~escape:false ~last:false add "PBBS";
+        let nb_stats_cols = 2 in
+        Mk_table.cell ~escape:false ~last:false add "PBBS";
+        if arg_nograin then (
+          Mk_table.cell ~escape:false ~last:false add "No grain";
+          Mk_table.cell ~escape:false ~last:false add (Latex.tabular_multicol nb_stats_cols "|c|" "No grain / PBBS"))
+        else ();
 	      Mk_table.cell ~escape:false ~last:false add "Oracle";
-	      Mk_table.cell ~escape:false ~last:last add (Latex.tabular_multicol 2 "|c|" "Oracle / PBBS"));
+	      Mk_table.cell ~escape:false ~last:last add (Latex.tabular_multicol nb_stats_cols "|c|" "Oracle / PBBS"));
       add Latex.tabular_newline;
 
       (* Emit third row, i.e., third-level column labels *)
@@ -1228,11 +1248,16 @@ let plot() =
       done;
       Mk_table.cell ~escape:false ~last:false add "(s)";
       Mk_table.cell ~escape:false ~last:false add "";
-      Mk_table.cell add (Latex.tabular_multicol 2 "|l|" "(relative to elision)");
+      Mk_table.cell add (Latex.tabular_multicol nb_single_core_cols "|l|" "(relative to elision)");
       ~~ List.iteri multi_proc (fun i proc ->
         let last = i + 1 = nb_multi_proc in
 	      Mk_table.cell ~escape:false ~last:false add "(s)";
-	      Mk_table.cell ~escape:false ~last:false add "";
+        if arg_nograin then (
+          Mk_table.cell ~escape:false ~last:false add "";
+        	Mk_table.cell ~escape:false ~last:false add "Idle time";
+	        Mk_table.cell ~escape:false ~last:false add "Nb threads")
+        else ();
+        Mk_table.cell ~escape:false ~last:false add "";
 	      Mk_table.cell ~escape:false ~last:false add "Idle time";
 	      Mk_table.cell ~escape:false ~last:last add "Nb threads");
       add Latex.tabular_newline;
@@ -1252,8 +1277,12 @@ let plot() =
         let results_sptl_elision = Results.from_file results_file_sptl_elision in
         let results_file_pbbs_single_proc = file_results_pbbs_single_proc benchmark.bd_name in
         let results_pbbs_single_proc = Results.from_file results_file_pbbs_single_proc in
+        let results_file_pbbs_nograin_single_proc = file_results_pbbs_nograin_single_proc benchmark.bd_name in
+        let results_pbbs_nograin_single_proc = Results.from_file results_file_pbbs_nograin_single_proc in        
         let results_file_sptl_single_proc = file_results_sptl_single_proc benchmark.bd_name in
         let results_sptl_single_proc = Results.from_file results_file_sptl_single_proc in
+        let results_file_pbbs_nograin = file_results_pbbs_nograin benchmark.bd_name in
+        let results_pbbs_nograin = Results.from_file results_file_pbbs_nograin in        
 	      let results_file = file_results benchmark.bd_name in
 	      let all_results = Results.from_file results_file in
 	      let results = all_results in
@@ -1261,6 +1290,7 @@ let plot() =
 	      let env_rows = benchmark.bd_infiles env in
         ~~ List.iter env_rows (fun env_rows ->  (* loop over each input for current benchmark *)
           let results = Results.filter env_rows results in
+          let results_pbbs_nograin = Results.filter env_rows results_pbbs_nograin in
           let results_pbbs_single_proc = Results.filter env_rows results_pbbs_single_proc in
           let results_sptl_single_proc = Results.filter env_rows results_sptl_single_proc in
           let env = Env.append env env_rows in
@@ -1290,16 +1320,26 @@ let plot() =
 	          let results = Results.filter col results_pbbs in
 	          Results.get_mean_of "exectime" results
 	        in
-	  let sptl_single_proc_sec =
-      let results_sptl = Results.filter env_rows results_sptl_single_proc in
-	    let [col] = ((mk_sptl_prog benchmark.bd_name) & mk_single_proc) env in
-	    let results = Results.filter col results_sptl in
-	    Results.get_mean_of "exectime" results
+	        let pbbs_nograin_single_proc_sec =
+            let results_pbbs = Results.filter env_rows results_pbbs_nograin_single_proc in
+	          let [col] = ((mk_pbbs_nograin_prog benchmark.bd_name) & mk_single_proc) env in
+	          let results = Results.filter col results_pbbs in
+	          Results.get_mean_of "exectime" results
+	        in
+	        let sptl_single_proc_sec =
+            let results_sptl = Results.filter env_rows results_sptl_single_proc in
+	          let [col] = ((mk_sptl_prog benchmark.bd_name) & mk_single_proc) env in
+	          let results = Results.filter col results_sptl in
+	          Results.get_mean_of "exectime" results
 	  in
 	  let pbbs_single_proc_rel_pbbs_elision = string_of_percentage_change pbbs_elision_sec pbbs_single_proc_sec in
+    let pbbs_nograin_single_proc_rel_pbbs_elision = string_of_percentage_change pbbs_elision_sec pbbs_nograin_single_proc_sec in
 	  let sptl_single_proc_rel_sptl_elision = string_of_percentage_change sptl_elision_sec sptl_single_proc_sec in
 	  let _ = (
       Mk_table.cell ~escape:false ~last:false add pbbs_single_proc_rel_pbbs_elision;
+      if arg_nograin then
+        Mk_table.cell ~escape:false ~last:false add pbbs_nograin_single_proc_rel_pbbs_elision
+      else ();
       Mk_table.cell ~escape:false ~last:false add sptl_single_proc_rel_sptl_elision)
 	  in
     ~~ List.iteri multi_proc (fun proc_i proc ->
@@ -1310,6 +1350,18 @@ let plot() =
         let env = Env.append env col in
         let results = Results.filter col results in
         let sec = eval_exectime env all_results results in
+	      let util = Results.get_mean_of "utilization" results in
+	      let idle_time = util *. sec in
+	      let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
+	      let nb_threads = if nb_threads = 0. then 1. else nb_threads
+	      in
+  	    (sec, util, idle_time, nb_threads)
+      in
+	    let (pbbs_nograin_sec, pbbs_nograin_utilization, pbbs_nograin_idle_time, pbbs_nograin_multi_proc_nb_threads) =
+        let [col] = ((mk_pbbs_nograin_prog benchmark.bd_name) & mk_procs) env in
+        let env = Env.append env col in
+        let results = Results.filter col results_pbbs_nograin in
+        let sec = eval_exectime env results results in
 	      let util = Results.get_mean_of "utilization" results in
 	      let idle_time = util *. sec in
 	      let nb_threads = Results.get_mean_of "nb_threads_alloc" results in
@@ -1332,7 +1384,15 @@ let plot() =
 	    let sptl_rel_pbbs = string_of_percentage_change pbbs_sec sptl_sec in
       let idle_time_str = string_of_percentage_change pbbs_idle_time sptl_idle_time in
 	    let nb_threads_enc_by_pbbs_str = string_of_percentage_change pbbs_multi_proc_nb_threads sptl_multi_proc_nb_threads in
+      let pbbs_nograin_rel_pbbs = string_of_percentage_change pbbs_sec pbbs_nograin_sec in
+      let pbbs_nograin_idle_time_str = string_of_percentage_change pbbs_idle_time pbbs_nograin_idle_time in
+	    let pbbs_nograin_nb_threads_enc_by_pbbs_str = string_of_percentage_change pbbs_multi_proc_nb_threads pbbs_nograin_multi_proc_nb_threads in
 	    Mk_table.cell ~escape:false ~last:false add (Printf.sprintf "%.3f" pbbs_sec);
+      if arg_nograin then (
+        Mk_table.cell ~escape:false ~last:false add pbbs_nograin_rel_pbbs;
+	      Mk_table.cell ~escape:false ~last:false add pbbs_nograin_idle_time_str;
+	      Mk_table.cell ~escape:false ~last:false add pbbs_nograin_nb_threads_enc_by_pbbs_str)
+      else ();
 	    Mk_table.cell ~escape:false ~last:false add sptl_rel_pbbs;
 	    Mk_table.cell ~escape:false ~last:false add idle_time_str;
 	    Mk_table.cell ~escape:false ~last:last add nb_threads_enc_by_pbbs_str);
