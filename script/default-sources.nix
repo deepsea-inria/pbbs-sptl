@@ -40,15 +40,15 @@ let pkgs = import <nixpkgs> {}; in
   pbbsIncludeSrc = pkgs.fetchFromGitHub {
     owner  = "deepsea-inria";
     repo   = "pbbs-include";
-    rev    = "ef5ce72c4b4c26af78f7d91ea9b51336cd83a2e9";
-    sha256 = "1g64j8gv6s9ggzhr2ky0y55s404cm0yrmdbhi5q4gfqaczbymyr4";
+    rev    = "ac791d6285f929af83f9491d0c4d7b5fe46200ee";
+    sha256 = "1d521qy8hn1nqi34hk04xrsaky735yazswidn5m0zwvdax0v8br2";
   };
 
   pbbsSptlSrc = pkgs.fetchFromGitHub {
     owner  = "deepsea-inria";
     repo   = "pbbs-sptl";
-    rev    = "772eb25050206fea91d6d42cf63c3b212a58d49b";
-    sha256 = "0f5ifgnpnbvyv7chc06w46bvz5m005ji7d2yvyyq44gifrmmr53f";
+    rev    = "eee76d83a3b3b060fb7ab84366951688d233a28c";
+    sha256 = "12db937la4jwr7fj9iqdrncnbmkici9zm3qv174dxfbnynfm8s0h";
   };
 
 }
