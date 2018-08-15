@@ -1,6 +1,6 @@
 { pkgs   ? import <nixpkgs> {},
   stdenv ? pkgs.stdenv,
-  sources ? import ./default-sources.nix,
+  sources ? import ./local-sources.nix,
   gperftools ? pkgs.gperftools,
   hwloc ? pkgs.hwloc,
   libunwind ? pkgs.libunwind,
@@ -103,9 +103,15 @@ stdenv.mkDerivation rec {
       ${sptl}/bin/get-nb-cores.sh
     '';
     in
+    let autotuneScript = pkgs.writeScript "autotune" ''
+      #!/usr/bin/env bash
+      ${sptl}/bin/autotune
+    '';
+    in
     ''
     ${docs}
     cp ${getNbCoresScript} bench/
+    cp ${autotuneScript} bench/autotune
     make -C bench bench.pbench
     '';  
 
@@ -152,6 +158,7 @@ stdenv.mkDerivation rec {
     $out/bench/bench.pbench compare -only make
     $out/bench/bench.pbench bfs -only make
     popd
+    cp bench/autotune $out/bench/autotune
     cp bench/sptl_config.txt $out/bench/sptl_config.txt
     cp bench/*.sptl bench/*.sptl_elision bench/*.sptl_nograin $out/bench/
     mkdir -p $out/doc
