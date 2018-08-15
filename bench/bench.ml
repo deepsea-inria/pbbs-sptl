@@ -834,7 +834,7 @@ let mk_infiles ty descr = fun e ->
 (* Convex hull *)
     
 let input_descriptor_hull = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
-  "array_point2d_in_circle_large.bin", string "2d", "in circle";
+(*  "array_point2d_in_circle_large.bin", string "2d", "in circle";*)
   "array_point2d_kuzmin_large.bin", string "2d", "kuzmin";
   "array_point2d_on_circle_large.bin", string  "2d", "on circle";
 ]
@@ -900,9 +900,9 @@ let mk_samplesort_infiles = mk_infiles "type" input_descriptor_samplesort
 (* Radix sort *)
 
 let input_descriptor_radixsort = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
-  "array_int_random_large.bin", string "int", "random";    
-  "array_int_exponential_large.bin", string "int", "exponential";
+(*  "array_int_random_large.bin", string "int", "random";    *)
   "array_pair_int_int_random_256_large.bin", string "pair_int_int", "random pair" (*"random int pair 256" *);
+  "array_int_exponential_large.bin", string "int", "exponential";
 (*  "array_pair_int_int_random_100000000_large.bin", string "pair_int_int", "random pair 10m";*)
 ]
 
@@ -978,10 +978,10 @@ let mk_suffixarray_infiles = mk_infiles "type" input_descriptor_suffixarray
 
 let input_descriptor_nearestneighbors = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
   "array_point2d_kuzmin_medium.bin", string "array_point2d", "kuzmin";
-  "array_point3d_on_sphere_medium.bin", string "array_point3d", "on sphere";
+(*  "array_point3d_on_sphere_medium.bin", string "array_point3d", "on sphere"; *)
   "array_point3d_plummer_medium.bin", string "array_point3d", "plummer"; 
 (*  "array_point2d_in_square_medium.bin", string "array_point2d", "in square";*)
-  "array_point3d_in_cube_medium.bin", string "array_point3d", "in cube"; 
+(*  "array_point3d_in_cube_medium.bin", string "array_point3d", "in cube"; *)
 ]
 
 let mk_nearestneighbors_infiles = mk_infiles "type" input_descriptor_nearestneighbors
