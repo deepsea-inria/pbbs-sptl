@@ -900,7 +900,7 @@ let mk_samplesort_infiles = mk_infiles "type" input_descriptor_samplesort
 (* Radix sort *)
 
 let input_descriptor_radixsort = List.map (fun (p, t, n) -> (path_to_infile p, t, n)) [
-(*  "array_int_random_large.bin", string "int", "random";    *)
+  "array_int_random_large.bin", string "int", "random";    
   "array_pair_int_int_random_256_large.bin", string "pair_int_int", "random pair" (*"random int pair 256" *);
   "array_int_exponential_large.bin", string "int", "exponential";
 (*  "array_pair_int_int_random_100000000_large.bin", string "pair_int_int", "random pair 10m";*)
