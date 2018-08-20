@@ -1278,14 +1278,24 @@ let plot() =
         let results_file_pbbs_single_proc = file_results_pbbs_single_proc benchmark.bd_name in
         let results_pbbs_single_proc = Results.from_file results_file_pbbs_single_proc in
         let results_file_pbbs_nograin_single_proc = file_results_pbbs_nograin_single_proc benchmark.bd_name in
-        let results_pbbs_nograin_single_proc = Results.from_file results_file_pbbs_nograin_single_proc in        
+        let results_pbbs_nograin_single_proc =
+          if arg_nograin then
+            Results.from_file results_file_pbbs_nograin_single_proc
+          else
+            results_pbbs_single_proc
+        in
         let results_file_sptl_single_proc = file_results_sptl_single_proc benchmark.bd_name in
         let results_sptl_single_proc = Results.from_file results_file_sptl_single_proc in
         let results_file_pbbs_nograin = file_results_pbbs_nograin benchmark.bd_name in
-        let results_pbbs_nograin = Results.from_file results_file_pbbs_nograin in        
-	      let results_file = file_results benchmark.bd_name in
-	      let all_results = Results.from_file results_file in
-	      let results = all_results in
+	    let results_file = file_results benchmark.bd_name in
+	    let all_results = Results.from_file results_file in
+	    let results = all_results in
+        let results_pbbs_nograin =
+          if arg_nograin then
+            Results.from_file results_file_pbbs_nograin
+          else
+            results
+        in
 	      let env = Env.empty in
 	      let env_rows = benchmark.bd_infiles env in
         ~~ List.iter env_rows (fun env_rows ->  (* loop over each input for current benchmark *)
