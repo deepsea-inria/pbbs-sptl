@@ -163,6 +163,7 @@ stdenv.mkDerivation rec {
     cp bench/*.sptl bench/*.sptl_elision bench/*.sptl_nograin $out/bench/
     mkdir -p $out/doc
     cp doc/pbbs-sptl.* doc/Makefile $out/doc/
+    ln -s ${sptl} $out/sptl
     '';
 
   meta = {
