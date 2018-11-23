@@ -14,34 +14,6 @@ using thunk_type = std::function<void()>;
 
 using measured_type = std::function<void(thunk_type)>;
 
-void load_presets_by_host() {
-  if (deepsea::cmdline::parse_or_default_bool("sptl_custom_kappa", false)) {
-    return;
-  }
-  char _hostname[HOST_NAME_MAX];
-  gethostname(_hostname, HOST_NAME_MAX);
-  std::string hostname = std::string(_hostname);
-  if (hostname == "teraram") {
-    kappa = 10.2;
-    update_size_ratio = 3.0;
-  } else if (hostname == "cadmium") {
-    kappa = 12.2;
-    update_size_ratio = 1.4;
-  } else if (hostname == "hiphi.aladdin.cs.cmu.edu") {
-    kappa = 40.0;
-    update_size_ratio = 1.2;
-  } else if (hostname == "aware.aladdin.cs.cmu.edu") {
-    kappa = 8.2;
-    update_size_ratio = 1.4;
-  } else if (hostname == "beast") {
-    kappa = 30.0;
-    update_size_ratio = 1.2;
-  } else if (hostname == "keith_analog") {
-    kappa = 10.2;
-    update_size_ratio = 3.0;
-  }
-}
-
 /* To use the Cilk Plus runtime which supports custom statistics, set
  * the environment variable as such:
  *
@@ -68,7 +40,6 @@ void launch(int argc, char** argv, const Body& body) {
     printf ("exectime %.3lf\n", diff.count());
   };
   sptl::launch(argc, argv, nb_proc, [&] {
-    load_presets_by_host();
     body(f);
   });
   printf("used_kappa %f\n", kappa);
