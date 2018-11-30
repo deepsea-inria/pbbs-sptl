@@ -69,6 +69,21 @@ let arg_scheduler = XCmd.parse_or_default_string "scheduler" ""
 let arg_path_to_data = XCmd.parse_or_default_string "path_to_data" "_data"
 let arg_path_to_results = XCmd.parse_or_default_string "path_to_results" "_results"
 let arg_nograin = XCmd.parse_or_default_bool "nograin" false
+let arg_sptl_kappa = XCmd.parse_or_default_float "sptl_kappa" (-1.0)
+let arg_sptl_alpha = XCmd.parse_or_default_float "sptl_alpha" (-1.0)
+let check_custom_alpha_or_kappa _ =
+  let k = mk float "sptl_kappa" arg_sptl_kappa in
+  let a = mk float "sptl_alpha" arg_sptl_alpha in
+  let uk = arg_sptl_kappa > 0.0 in
+  let ua = arg_sptl_alpha > 0.0 in
+  if not(uk) && not(ua) then
+    None
+  else if uk && ua then
+    Some (k ++ a)
+  else if uk then
+    Some k
+  else
+    Some a
     
 let par_run_modes =
   Mk_runs.([
@@ -626,8 +641,15 @@ let prog_of (p, e) = sprintf "%s_bench.%s" p e
 let mk_bfs_prog inner_loop extension lib_type =
   (mk string "prog" (prog inner_loop extension)) & (mk_lib_type lib_type)
 
+let sptl_lib_config =
+  let s = mk string "library" "sptl" in
+  match check_custom_alpha_or_kappa () with
+  | None -> s
+  | Some a -> (a & s)
+
+  
 let mk_progs =
-  ((mk_list string "prog" oracle_progs)  & (mk_lib_type "sptl")) ++
+  ((mk_list string "prog" oracle_progs)  & sptl_lib_config) ++
     ((mk_list string "prog" baseline_progs)  & (mk_lib_type "pbbs"))
 
 let run() =
@@ -841,7 +863,11 @@ let input_descriptor_hull = List.map (fun (p, t, n) -> (path_to_infile p, t, n))
 
 let mk_hull_infiles = mk_infiles "type" input_descriptor_hull
 
-let mk_sptl_lib = mk string "library" "sptl"
+let mk_sptl_lib =
+  let s = mk string "library" "sptl" in
+  match check_custom_alpha_or_kappa () with
+  | None -> s
+  | Some a -> (a & s)
                                  
 let mk_sptl_prog n =
   let a =
