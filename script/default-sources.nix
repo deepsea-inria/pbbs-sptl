@@ -47,8 +47,8 @@ let pkgs = import <nixpkgs> {}; in
   pbbsSptlSrc = pkgs.fetchFromGitHub {
     owner  = "deepsea-inria";
     repo   = "pbbs-sptl";
-    rev    = "ea568619aa7ccd7a8fe60c7a4c59d71644063102";
-    sha256 = "06ydhdkn906qz3bmyqav5a7fc22hg93kzbzk27qy769799z09vw5";
+    rev    = "13a1341cbfbfbe61ec995fb8b7d64fa5aed08556";
+    sha256 = "09bw3p4d7j6chfrqpzcg3ygzkbjc0gpwy8pnaj18f7glmcl1sx5w";
   };
 
 }
