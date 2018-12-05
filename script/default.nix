@@ -6,6 +6,7 @@
   libunwind ? pkgs.libunwind,
   useLibunwind ? false,
   gcc ? pkgs.gcc,
+  ocaml ? pkgs.ocaml_4_02,
   pathToResults ? "",
   pathToData ? "",
   buildDocs ? false
@@ -16,6 +17,8 @@ let
   callPackage = pkgs.lib.callPackageWith (pkgs // sources // self);
 
   self = {
+
+    ocaml = ocaml;
 
     hwloc = hwloc;
 
@@ -60,7 +63,7 @@ stdenv.mkDerivation rec {
     in
     [ pbench sptl pbbs-include cmdline chunkedseq
       pkgs.makeWrapper pkgs.R pkgs.texlive.combined.scheme-small
-      pkgs.ocaml gcc
+      gcc ocaml
     ] ++ docs ++ lu;
 
   configurePhase =
