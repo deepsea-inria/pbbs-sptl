@@ -1,4 +1,4 @@
-{ pkgs   ? import <nixpkgs> {},
+{ pkgs   ? import (fetchTarball https://github.com/NixOS/nixpkgs/archive/18.09.tar.gz) {},
   stdenv ? pkgs.stdenv,
   sources ? import ./default-sources.nix,
   gperftools ? pkgs.gperftools,
