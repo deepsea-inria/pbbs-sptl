@@ -26,7 +26,7 @@ let find_sptl_config _  =
 
 let arg_virtual_run = XCmd.mem_flag "virtual_run"
 let arg_virtual_build = XCmd.mem_flag "virtual_build"
-let arg_nb_runs = XCmd.parse_or_default_int "runs" 1
+let arg_nb_runs = XCmd.parse_or_default_int "runs" 30
 let arg_nb_seq_runs = XCmd.parse_or_default_int "seq_runs" 1
 let arg_force_get = XCmd.mem_flag "force_get"
 let arg_virtual_get = XCmd.mem_flag "virtual_get"
