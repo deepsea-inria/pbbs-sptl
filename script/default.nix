@@ -141,13 +141,18 @@ stdenv.mkDerivation rec {
     in
     let flags = "${nmf} ${rf} ${df} ${scp}";
     in
+    let ipgetScript = pkgs.writeScript "ipget.sh" ''
+      #!/usr/bin/env bash
+      ${pkgs.ipget}/bin/ipget -o $2 $3 2>/dev/null 
+    '';
+    in
     ''
     mkdir -p $out/bench/
     cp bench/bench.pbench bench/timeout.out $out/bench/
+    cp ${ipgetScript} $out/bench/ipget
     wrapProgram $out/bench/bench.pbench --prefix PATH ":" ${pkgs.R}/bin \
        --prefix PATH ":" ${pkgs.texlive.combined.scheme-small}/bin \
        --prefix PATH ":" ${gcc}/bin \
-       --prefix PATH ":" ${pkgs.ipget}/bin \
        --prefix PATH ":" $out/bench \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib \
        --prefix LD_LIBRARY_PATH ":" ${gcc}/lib64 \
