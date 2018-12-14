@@ -6,6 +6,8 @@ let system = XSys.command_must_succeed_or_virtual
 (*****************************************************************************)
 (** Parameters *)
 
+let arg_sptl_config_path = XCmd.parse_or_default_string "sptl_config_path" "."
+
 let read_string_of fname =
   if not (Sys.file_exists fname) then
     None
@@ -18,12 +20,9 @@ let read_string_of fname =
     with End_of_file -> (close_in chan; None)      
                       
 let find_sptl_config _  =
-  match read_string_of "sptl_config.txt" with
-  | None -> None
-  | Some sptl_config_path ->
-     match read_string_of (sptl_config_path ^ "/nb_cores") with
-       None -> None
-     | Some nb_str -> Some (int_of_string nb_str)
+   match read_string_of (arg_sptl_config_path ^ "/nb_cores") with
+     None -> None
+   | Some nb_str -> Some (int_of_string nb_str)
 
 let arg_virtual_run = XCmd.mem_flag "virtual_run"
 let arg_virtual_build = XCmd.mem_flag "virtual_build"
@@ -47,8 +46,6 @@ let arg_proc =
       [ 64; ]
     else if hostname = "aware.aladdin.cs.cmu.edu" then
       [ 72; ]
-    else if hostname = "beast" then
-      [ 8; ]
     else if List.length cmdline_proc > 0 then
       cmdline_proc
     else (

@@ -88,11 +88,9 @@ stdenv.mkDerivation rec {
       ${hwlocConfig}    
     '';
     in
-    let sptlConfigFile = pkgs.writeText "sptl_config.txt" "${sptl}/bin/"; in
     ''
     cp -r --no-preserve=mode ${pbench} pbench
     cp ${settingsScript} bench/settings.sh
-    cp ${sptlConfigFile} bench/sptl_config.txt
     '';
 
   buildPhase =
@@ -139,7 +137,9 @@ stdenv.mkDerivation rec {
         "-path_to_data ${pathToData}"
       else "";
     in
-    let flags = "${nmf} ${rf} ${df}";
+    let scp = "-sptl_config_path $out/sptl/autotune-results/";
+    in
+    let flags = "${nmf} ${rf} ${df} ${scp}";
     in
     ''
     mkdir -p $out/bench/
@@ -162,7 +162,6 @@ stdenv.mkDerivation rec {
     $out/bench/bench.pbench bfs -only make
     popd
     cp bench/autotune $out/bench/autotune
-    cp bench/sptl_config.txt $out/bench/sptl_config.txt
     cp bench/*.sptl bench/*.sptl_elision bench/*.sptl_nograin $out/bench/
     mkdir -p $out/doc
     cp doc/pbbs-sptl.* doc/Makefile $out/doc/
